@@ -1,0 +1,26 @@
+#buttons {
+    color: blue
+}
+
+#info {
+    border: 1px solid white;
+    border-radius: 40px;
+    border-width: thick;
+    background-color: rgb(9, 44, 56);
+    width: 35em;
+    color: rgb(191, 205, 217);
+}
+
+#exchangetitle {
+    text-align: center;
+    color: rgb(191, 205, 217);
+}
+
+#myNFTs {
+    border: 1px solid white;
+    border-radius: 40px;
+    border-width: thick;
+    background-color: rgb(9, 44, 56);
+    width: 35em;
+    color: rgb(191, 205, 217);
+}

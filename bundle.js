@@ -1,24 +1,112 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const ethers = require("ethers");
 
-document.addEventListener("click", function() {
-    // provider is a ethereum provider, and we create it with window.ethereum, which is
-    // how we access Metamask in code.
-    // the window.ethereum object is available if a user has metamask installed.
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    // we can call the .send method on the provider, and tell it what we want: to request accounts.
-    // this is how we get metamasks APPROVAL for a certain website.
+const ethers = require('ethers');
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+document.getElementById("addressbutton").addEventListener("click", function () {
     provider.send("eth_requestAccounts", []).then(addresses => {
-        // use the ethers library to get the users balance, and display it to the page.
-        console.log(addresses);
-        const address = addresses[0];
-        console.log(address);
+        console.log(addresses[0]);
+        document.getElementById("address").innerHTML = addresses[0];
+    })
 
-        provider.getBalance(address).then(balance => {
-            console.log(balance.toString());
+})
+
+document.getElementById("balancebutton").addEventListener("click", function () {
+    provider.send("eth_requestAccounts", []).then(addresses => {
+
+        provider.getBalance(addresses[0]).then(myBalance => {
+            console.log(ethers.utils.formatEther(myBalance));
+            document.getElementById("balance").innerHTML = ethers.utils.formatEther(myBalance);
         })
     })
-});
+})
+
+document.getElementById("blocknumberbutton").addEventListener("click", function () {
+    provider.send("eth_requestAccounts", []).then(addresses => {
+
+        provider.getBlockNumber(addresses[0]).then(myBlockNumber => {
+            console.log(myBlockNumber);
+            document.getElementById("blockNumber").innerHTML = myBlockNumber;
+        })
+    })
+})
+
+//     })
+const signer = provider.getSigner();
+//     console.log(signer);
+//     // Send 1 ether to an ens name.
+//     // const tx = signer.sendTransaction({
+//     // to: "0x6c5D6081e7EdD0F047d4b72BBAdf7Ebf8168b31B",
+//     // value: ethers.utils.parseEther("0.00000001")
+//     // filter = {
+//     //     address: 0x9552cfce60429863D4A7D8205457EC4AC05857dC,
+//     //     topics: [
+//     //         utils.id("Transfer(address,address,uint256)"),
+//     //         hexZeroPad(myAddress, 32)
+//     //     ]
+//     // };
+
+
+
+
+document.getElementById("gaspricebutton").addEventListener("click", function () {
+    provider.send("eth_requestAccounts", []).then(addresses => {
+
+        signer.getGasPrice(addresses[0]).then(GasPrice => {
+            console.log(ethers.utils.formatUnits(GasPrice, "gwei"));
+            document.getElementById("currentGasPrice").innerHTML = ethers.utils.formatUnits(GasPrice, "gwei");
+        })
+    })
+})
+
+// document.getElementById("chainIDbutton").addEventListener("click", function () {
+//     const chainID = provider.getNetwork();
+//     console.log(`Current chain id: ${chainId}`);
+
+
+
+//     // signer.getChainId.then(number => {
+//     //     this._checkProvider("getChainId");
+//     //     const network = this.provider.getNetwork().then
+//     //     return network.chainId;
+
+async function findchainid() {
+    const { chainId } = await provider.getNetwork();
+    document.getElementById("chainIDbutton").addEventListener("click", function () {
+        console.log(`Current chain id: ${chainId}`);
+        document.getElementById("myChainID").innerHTML = chainId;
+        // })
+    });
+}
+findchainid();
+
+// async function main() {
+//     // Replace with your Ethereum wallet address
+//     const walletAddress = '0x9552cfce60429863D4A7D8205457EC4AC05857dC0';
+
+//     // Connect to the Ethereum network
+
+//     // Get all the NFTs owned by the wallet address
+//     const nftTokens = await ethers.getNFTokens(provider, walletAddress);
+
+//     console.log(nftTokens);
+// }
+
+// main();
+
+
+//     // Call the getGasPrice() method
+//     const gasPrice = await provider.getGasPrice();
+//     document.getElementById("currentGasPrice").innerHTML = ethers.utils.formatUnits(gasPrice, "gwei");
+//     console.log(ethers.utils.formatUnits(gasPrice, "gwei")); // logs the current gas price in wei
+// }
+
+// getGasPrice();
+// });
+
+// });
+
+
 },{"ethers":150}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
