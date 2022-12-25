@@ -1,7 +1,16 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 
+const { Network } = require('@alch/alchemy-sdk');
 const ethers = require('ethers');
 const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+document.getElementById("connectwallet").addEventListener("click", function () {
+    provider.send("eth_requestAccounts", []).then(addresses => {
+        console.log(addresses[0]);
+
+    })
+
+})
 
 document.getElementById("addressbutton").addEventListener("click", function () {
     provider.send("eth_requestAccounts", []).then(addresses => {
@@ -80,34 +89,49 @@ async function findchainid() {
 }
 findchainid();
 
-// async function main() {
-//     // Replace with your Ethereum wallet address
-//     const walletAddress = '0x9552cfce60429863D4A7D8205457EC4AC05857dC0';
-
-//     // Connect to the Ethereum network
-
-//     // Get all the NFTs owned by the wallet address
-//     const nftTokens = await ethers.getNFTokens(provider, walletAddress);
-
-//     console.log(nftTokens);
-// }
-
-// main();
 
 
-//     // Call the getGasPrice() method
-//     const gasPrice = await provider.getGasPrice();
-//     document.getElementById("currentGasPrice").innerHTML = ethers.utils.formatUnits(gasPrice, "gwei");
-//     console.log(ethers.utils.formatUnits(gasPrice, "gwei")); // logs the current gas price in wei
-// }
+// document.getElementById("chainIDbutton").addEventListener("click", function () {
+//     const network = provider.getNetwork();
+//     console.log(network.chainId);
+//     // document.getElementById("myChainID").innerHTML = mychainId;
+// })
+// document.getElementById("addressbutton").addEventListener("click", function () {
+//     provider.send("eth_requestAccounts", []).then(addresses => {
+//         console.log(addresses[0]);
+//         document.getElementById("address").innerHTML = addresses[0];
+//     })
 
-// getGasPrice();
+// })
+
+document.getElementById("searchaddressbutton").addEventListener("click", function () {
+    const address2 = document.getElementById("input-bar").value;
+    document.getElementById("address2").innerHTML = address2;
+    provider.getBalance(address2).then(myBalance => {
+        console.log(ethers.utils.formatEther(myBalance));
+        document.getElementById("balance2").innerHTML = ethers.utils.formatEther(myBalance);
+
+    })
+})
+// document.getElementById("addressbutton2").addEventListener("click", function () {
+
+
+// })
+
+
+// document.getElementById("address2").innerHTML = address2;
+
+// Replace the following with the address whose balance you want to check
+// const address2 = '0x6c5D6081e7EdD0F047d4b72BBAdf7Ebf8168b31B';
+
+// Create a provider to connect to the Ethereum network
+
+// Get the balance of the address
+// provider2.getBalance(address2).then((balance) => {
+//     console.log(ethers.utils.formatEther(balance));
 // });
 
-// });
-
-
-},{"ethers":150}],2:[function(require,module,exports){
+},{"@alch/alchemy-sdk":172,"ethers":150}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.version = void 0;
@@ -33869,4 +33893,4844 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this)}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":169,"timers":171}]},{},[1]);
+},{"process/browser.js":169,"timers":171}],172:[function(require,module,exports){
+(function (process){(function (){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var providers = require('@ethersproject/providers');
+var bignumber = require('@ethersproject/bignumber');
+var SturdyWebSocket = require('sturdy-websocket');
+var axios = require('axios');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var SturdyWebSocket__default = /*#__PURE__*/_interopDefaultLegacy(SturdyWebSocket);
+var axios__default = /*#__PURE__*/_interopDefaultLegacy(axios);
+
+/**
+ * The supported networks by Alchemy. Note that some functions are not available
+ * on all networks. Please refer to the Alchemy documentation for more details.
+ *
+ * @public
+ */
+exports.Network = void 0;
+(function (Network) {
+    Network["ETH_MAINNET"] = "eth-mainnet";
+    Network["ETH_ROPSTEN"] = "eth-ropsten";
+    Network["ETH_GOERLI"] = "eth-goerli";
+    Network["ETH_KOVAN"] = "eth-kovan";
+    Network["ETH_RINKEBY"] = "eth-rinkeby";
+    Network["OPT_MAINNET"] = "opt-mainnet";
+    Network["OPT_KOVAN"] = "opt-kovan";
+    Network["ARB_MAINNET"] = "arb-mainnet";
+    Network["ARB_RINKEBY"] = "arb-rinkeby";
+    Network["MATIC_MAINNET"] = "polygon-mainnet";
+    Network["MATIC_MUMBAI"] = "polygon-mumbai";
+})(exports.Network || (exports.Network = {}));
+/** @public */
+exports.AssetTransfersCategory = void 0;
+(function (AssetTransfersCategory) {
+    AssetTransfersCategory["EXTERNAL"] = "external";
+    AssetTransfersCategory["INTERNAL"] = "internal";
+    AssetTransfersCategory["TOKEN"] = "token";
+    AssetTransfersCategory["ERC20"] = "erc20";
+    AssetTransfersCategory["ERC721"] = "erc721";
+    AssetTransfersCategory["ERC1155"] = "erc1155";
+    /**
+     * Special contracts that don't follow ERC 721/1155, (ex: CryptoKitties).
+     *
+     * @beta
+     */
+    AssetTransfersCategory["SPECIALNFT"] = "specialnft";
+})(exports.AssetTransfersCategory || (exports.AssetTransfersCategory = {}));
+/** @public */
+exports.AssetTransfersOrder = void 0;
+(function (AssetTransfersOrder) {
+    AssetTransfersOrder["ASCENDING"] = "asc";
+    AssetTransfersOrder["DESCENDING"] = "desc";
+})(exports.AssetTransfersOrder || (exports.AssetTransfersOrder = {}));
+/** @public */
+exports.NftTokenType = void 0;
+(function (NftTokenType) {
+    NftTokenType["ERC721"] = "ERC721";
+    NftTokenType["ERC1155"] = "ERC1155";
+    NftTokenType["UNKNOWN"] = "UNKNOWN";
+})(exports.NftTokenType || (exports.NftTokenType = {}));
+/**
+ * Enum of NFT filters that can be applied to a {@link getNftsForOwner} request.
+ * NFTs that match one or more of these filters are excluded from the response.
+ *
+ * @beta
+ */
+exports.NftExcludeFilters = void 0;
+(function (NftExcludeFilters) {
+    /** Exclude NFTs that have been classified as spam. */
+    NftExcludeFilters["SPAM"] = "SPAM";
+})(exports.NftExcludeFilters || (exports.NftExcludeFilters = {}));
+
+const DEFAULT_CONTRACT_ADDRESSES = 'DEFAULT_TOKENS';
+const DEFAULT_ALCHEMY_API_KEY = 'demo';
+const DEFAULT_NETWORK = exports.Network.ETH_MAINNET;
+const DEFAULT_MAX_RETRIES = 5;
+/**
+ * Returns the base URL for making Alchemy API requests. The `alchemy.com`
+ * endpoints only work with non eth json-rpc requests.
+ *
+ * @internal
+ */
+function getAlchemyHttpUrl(network, apiKey) {
+    return `https://${network}.g.alchemy.com/v2/${apiKey}`;
+}
+function getAlchemyNftHttpUrl(network, apiKey) {
+    return `https://${network}.g.alchemy.com/nft/v2/${apiKey}`;
+}
+function getAlchemyWsUrl(network, apiKey) {
+    return `wss://${network}.g.alchemy.com/v2/${apiKey}`;
+}
+var AlchemyApiType;
+(function (AlchemyApiType) {
+    AlchemyApiType[AlchemyApiType["BASE"] = 0] = "BASE";
+    AlchemyApiType[AlchemyApiType["NFT"] = 1] = "NFT";
+})(AlchemyApiType || (AlchemyApiType = {}));
+/**
+ * Mapping of network names to their corresponding Network strings used to
+ * create an Ethers.js Provider instance.
+ */
+const EthersNetwork = {
+    [exports.Network.ETH_MAINNET]: 'mainnet',
+    [exports.Network.ETH_ROPSTEN]: 'ropsten',
+    [exports.Network.ETH_GOERLI]: 'goerli',
+    [exports.Network.ETH_KOVAN]: 'kovan',
+    [exports.Network.ETH_RINKEBY]: 'rinkeby',
+    [exports.Network.OPT_MAINNET]: 'optimism',
+    [exports.Network.OPT_KOVAN]: 'optimism-kovan',
+    [exports.Network.ARB_MAINNET]: 'arbitrum',
+    [exports.Network.ARB_RINKEBY]: 'arbitrum-rinkeby',
+    [exports.Network.MATIC_MAINNET]: 'matic',
+    [exports.Network.MATIC_MUMBAI]: 'maticmum'
+};
+function noop() {
+    // It's a no-op
+}
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
+function __values(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+}
+
+function __await(v) {
+    return this instanceof __await ? (this.v = v, this) : new __await(v);
+}
+
+function __asyncGenerator(thisArg, _arguments, generator) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var g = generator.apply(thisArg, _arguments || []), i, q = [];
+    return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
+    function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+    function fulfill(value) { resume("next", value); }
+    function reject(value) { resume("throw", value); }
+    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+}
+
+function __asyncValues(o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+}
+
+/**
+ * The SDK has 4 log levels and a 5th option for disabling all logging. By
+ * default, the log level is set to INFO.
+ *
+ * The order is a follows: DEBUG < INFO < WARN < ERROR
+ *
+ * All log types above the current log level will be outputted.
+ */
+var LogLevel;
+(function (LogLevel) {
+    LogLevel[LogLevel["DEBUG"] = 0] = "DEBUG";
+    LogLevel[LogLevel["INFO"] = 1] = "INFO";
+    LogLevel[LogLevel["WARN"] = 2] = "WARN";
+    LogLevel[LogLevel["ERROR"] = 3] = "ERROR";
+    LogLevel[LogLevel["SILENT"] = 4] = "SILENT";
+})(LogLevel || (LogLevel = {}));
+const logLevelStringToEnum = {
+    debug: LogLevel.DEBUG,
+    info: LogLevel.INFO,
+    warn: LogLevel.WARN,
+    error: LogLevel.ERROR,
+    silent: LogLevel.SILENT
+};
+// HACKY: Use the console method as a string rather than the function itself
+// in order to allow for mocking in tests.
+const logLevelToConsoleFn = {
+    [LogLevel.DEBUG]: 'log',
+    [LogLevel.INFO]: 'info',
+    [LogLevel.WARN]: 'warn',
+    [LogLevel.ERROR]: 'error'
+};
+const DEFAULT_LOG_LEVEL = LogLevel.INFO;
+/**
+ * Configures the verbosity of logging. The default log level is `info`.
+ *
+ * @param logLevel - The verbosity of logging. Can be any of the following values:
+ *
+ *   - `debug`: The most verbose logging level.
+ *   - `info`: The default logging level.
+ *   - `warn`: A logging level for non-critical issues.
+ *   - `error`: A logging level for critical issues.
+ *   - `silent`: Turn off all logging.
+ *
+ * @public
+ */
+function setLogLevel(logLevel) {
+    loggerClient.logLevel = logLevelStringToEnum[logLevel];
+}
+function logDebug(message, ...args) {
+    loggerClient.debug(message, args);
+}
+function logInfo(message, ...args) {
+    loggerClient.info(message, args);
+}
+function logWarn(message, ...args) {
+    loggerClient.warn(message, args);
+}
+class Logger {
+    constructor() {
+        /** The log level of the given Logger instance. */
+        this._logLevel = DEFAULT_LOG_LEVEL;
+    }
+    get logLevel() {
+        return this._logLevel;
+    }
+    set logLevel(val) {
+        if (!(val in LogLevel)) {
+            throw new TypeError(`Invalid value "${val}" assigned to \`logLevel\``);
+        }
+        this._logLevel = val;
+    }
+    debug(...args) {
+        this._log(LogLevel.DEBUG, ...args);
+    }
+    info(...args) {
+        this._log(LogLevel.INFO, ...args);
+    }
+    warn(...args) {
+        this._log(LogLevel.WARN, ...args);
+    }
+    error(...args) {
+        this._log(LogLevel.ERROR, ...args);
+    }
+    /**
+     * Forwards log messages to their corresponding console counterparts if the
+     * log level allows it.
+     */
+    _log(logLevel, ...args) {
+        if (logLevel < this._logLevel) {
+            return;
+        }
+        const now = new Date().toISOString();
+        const method = logLevelToConsoleFn[logLevel];
+        if (method) {
+            console[method](`[${now}] Alchemy:`, ...args.map(stringify));
+        }
+        else {
+            throw new Error(`Logger received an invalid logLevel (value: ${logLevel})`);
+        }
+    }
+}
+function stringify(obj) {
+    if (typeof obj === 'string') {
+        return obj;
+    }
+    else {
+        try {
+            return JSON.stringify(obj);
+        }
+        catch (e) {
+            // Failed to convert to JSON, log the object directly.
+            return obj;
+        }
+    }
+}
+// Instantiate default logger for the SDK.
+const loggerClient = new Logger();
+
+// This file is autogenerated by injectVersion.js. Any changes will be
+// overwritten on commit!
+const VERSION = '1.1.1';
+
+/**
+ * SDK's custom implementation of ethers.js's 'AlchemyProvider'.
+ *
+ * @public
+ */
+class AlchemyProvider extends providers.JsonRpcProvider {
+    constructor(network, apiKey, maxRetries) {
+        // Normalize the API Key to a string.
+        apiKey = AlchemyProvider.getApiKey(apiKey);
+        // Generate our own connection info with the correct endpoint URLs.
+        const alchemyNetwork = AlchemyProvider.getAlchemyNetwork(network);
+        const connection = AlchemyProvider.getAlchemyConnectionInfo(alchemyNetwork, apiKey, 'http');
+        // Normalize the Alchemy named network input to the network names used by
+        // ethers. This allows the parent super constructor in JsonRpcProvider to
+        // correctly set the network.
+        const ethersNetwork = EthersNetwork[alchemyNetwork];
+        super(connection, ethersNetwork);
+        this.apiKey = apiKey;
+        this.maxRetries = maxRetries;
+    }
+    /**
+     * Overrides the `UrlJsonRpcProvider.getApiKey` method as implemented by
+     * ethers.js. Returns the API key for an Alchemy provider.
+     *
+     * @internal
+     * @override
+     */
+    static getApiKey(apiKey) {
+        if (apiKey == null) {
+            return DEFAULT_ALCHEMY_API_KEY;
+        }
+        if (apiKey && typeof apiKey !== 'string') {
+            throw new Error(`Invalid apiKey '${apiKey}' provided. apiKey must be a string.`);
+        }
+        return apiKey;
+    }
+    /**
+     * Converts the `Networkish` input to the network enum used by Alchemy.
+     *
+     * @internal
+     */
+    static getAlchemyNetwork(network) {
+        if (network === undefined) {
+            return DEFAULT_NETWORK;
+        }
+        if (typeof network === 'number') {
+            throw new Error(`Invalid network '${network}' provided. Network must be a string.`);
+        }
+        // Guaranteed that `typeof network === 'string`.
+        const isValidNetwork = Object.values(exports.Network).includes(network);
+        if (!isValidNetwork) {
+            throw new Error(`Invalid network '${network}' provided. Network must be one of: ` +
+                `${Object.values(exports.Network).join(', ')}.`);
+        }
+        return network;
+    }
+    /**
+     * Returns a {@link ConnectionInfo} object compatible with ethers that contains
+     * the correct URLs for Alchemy.
+     *
+     * @internal
+     */
+    static getAlchemyConnectionInfo(network, apiKey, type) {
+        const url = type === 'http'
+            ? getAlchemyHttpUrl(network, apiKey)
+            : getAlchemyWsUrl(network, apiKey);
+        return {
+            headers: {
+                'Alchemy-Ethers-Sdk-Version': VERSION,
+                'Accept-Encoding': 'gzip'
+            },
+            allowGzip: true,
+            url
+        };
+    }
+    /**
+     * Overrides the method in ethers.js's `StaticJsonRpcProvider` class. This
+     * method is called when calling methods on the parent class `BaseProvider`.
+     *
+     * @override
+     */
+    detectNetwork() {
+        const _super = Object.create(null, {
+            detectNetwork: { get: () => super.detectNetwork }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            let network = this.network;
+            if (network == null) {
+                network = yield _super.detectNetwork.call(this);
+                if (!network) {
+                    throw new Error('No network detected');
+                }
+            }
+            return network;
+        });
+    }
+    _startPending() {
+        logWarn('WARNING: Alchemy Provider does not support pending filters');
+    }
+    /**
+     * Overrides the ether's `isCommunityResource()` method. Returns true if the
+     * current api key is the default key.
+     *
+     * @override
+     */
+    isCommunityResource() {
+        return this.apiKey === DEFAULT_ALCHEMY_API_KEY;
+    }
+    /**
+     * Overrides the base {@link JsonRpcProvider.send} method to implement custom
+     * logic for sending requests to Alchemy.
+     *
+     * @param method The method name to use for the request.
+     * @param params The parameters to use for the request.
+     * @override
+     * @public
+     */
+    // TODO: Implement sender logic to override retries and backoff.
+    send(method, params) {
+        return super.send(method, params);
+    }
+}
+
+/**
+ * Converts a hex string to a decimal number.
+ *
+ * @param hexString - The hex string to convert.
+ * @public
+ */
+function fromHex(hexString) {
+    return bignumber.BigNumber.from(hexString).toNumber();
+}
+/**
+ * Converts a number to a hex string.
+ *
+ * @param num - The number to convert to hex.
+ * @public
+ */
+function toHex(num) {
+    return bignumber.BigNumber.from(num).toHexString();
+}
+/**
+ * Checks if a value is a hex string.
+ *
+ * @param possibleHexString - The value to check.
+ * @public
+ */
+function isHex(possibleHexString) {
+    return /^0x[0-9a-fA-F]+$/.test(possibleHexString);
+}
+
+/**
+ * The maximum number of blocks to backfill. If more than this many blocks have
+ * been missed, then we'll sadly miss data, but we want to make sure we don't
+ * end up requesting thousands of blocks if somebody left their laptop closed for a week.
+ */
+const MAX_BACKFILL_BLOCKS = 120;
+/**
+ * The WebsocketBackfiller fetches events that were sent since a provided block
+ * number. This is used in the {@link AlchemyWebSocketProvider} to backfill
+ * events that were transmitted while the websocket connection was down.
+ *
+ * The backfiller backfills two main eth_subscribe events: `logs` and `newHeads`.
+ *
+ * @internal
+ */
+class WebsocketBackfiller {
+    constructor(provider) {
+        this.provider = provider;
+        // TODO: Use HTTP provider to do backfill.
+        this.maxBackfillBlocks = MAX_BACKFILL_BLOCKS;
+    }
+    /**
+     * Runs backfill for `newHeads` events.
+     *
+     * @param isCancelled Whether the backfill request is cancelled.
+     * @param previousHeads Previous head requests that were sent.
+     * @param fromBlockNumber The block number to start backfilling from.
+     * @returns A list of `newHeads` events that were sent since the last backfill.
+     */
+    getNewHeadsBackfill(isCancelled, previousHeads, fromBlockNumber) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throwIfCancelled(isCancelled);
+            const toBlockNumber = yield this.getBlockNumber();
+            throwIfCancelled(isCancelled);
+            // If there are no previous heads to fetch, return new heads since
+            // `fromBlockNumber`, or up to maxBackfillBlocks from the current head.
+            if (previousHeads.length === 0) {
+                return this.getHeadEventsInRange(Math.max(fromBlockNumber, toBlockNumber - this.maxBackfillBlocks) + 1, toBlockNumber + 1);
+            }
+            // If the last emitted event is too far back in the past, there's no need
+            // to backfill for reorgs. Just fetch the last `maxBackfillBlocks` worth of
+            // new heads.
+            const lastSeenBlockNumber = fromHex(previousHeads[previousHeads.length - 1].number);
+            const minBlockNumber = toBlockNumber - this.maxBackfillBlocks + 1;
+            if (lastSeenBlockNumber <= minBlockNumber) {
+                return this.getHeadEventsInRange(minBlockNumber, toBlockNumber + 1);
+            }
+            // To capture all `newHeads` events, return all head events from the last
+            // seen block number to current + any of the previous heads that were re-orged.
+            const reorgHeads = yield this.getReorgHeads(isCancelled, previousHeads);
+            throwIfCancelled(isCancelled);
+            const intermediateHeads = yield this.getHeadEventsInRange(lastSeenBlockNumber + 1, toBlockNumber + 1);
+            throwIfCancelled(isCancelled);
+            return [...reorgHeads, ...intermediateHeads];
+        });
+    }
+    /**
+     * Runs backfill for `logs` events.
+     *
+     * @param isCancelled Whether the backfill request is cancelled.
+     * @param filter The filter object that accompanies a logs subscription.
+     * @param previousLogs Previous log requests that were sent.
+     * @param fromBlockNumber The block number to start backfilling from.
+     */
+    getLogsBackfill(isCancelled, filter, previousLogs, fromBlockNumber) {
+        return __awaiter(this, void 0, void 0, function* () {
+            throwIfCancelled(isCancelled);
+            const toBlockNumber = yield this.getBlockNumber();
+            throwIfCancelled(isCancelled);
+            // If there are no previous logs to fetch, return new logs since
+            // `fromBlockNumber`, or up to `maxBackfillBlocks` from the current head.
+            if (previousLogs.length === 0) {
+                return this.getLogsInRange(filter, Math.max(fromBlockNumber, toBlockNumber - this.maxBackfillBlocks) + 1, toBlockNumber + 1);
+            }
+            // If the last emitted log is too far back in the past, there's no need
+            // to backfill for removed logs. Just fetch the last `maxBackfillBlocks`
+            // worth of logs.
+            const lastSeenBlockNumber = fromHex(previousLogs[previousLogs.length - 1].blockNumber);
+            const minBlockNumber = toBlockNumber - this.maxBackfillBlocks + 1;
+            if (lastSeenBlockNumber < minBlockNumber) {
+                return this.getLogsInRange(filter, minBlockNumber, toBlockNumber + 1);
+            }
+            // Return all log events that have happened along with log events that have
+            // been removed due to a chain reorg.
+            const commonAncestor = yield this.getCommonAncestor(isCancelled, previousLogs);
+            throwIfCancelled(isCancelled);
+            // All previous logs with a block number greater than the common ancestor
+            // were part of a re-org, so mark them as such.
+            const removedLogs = previousLogs
+                .filter(log => fromHex(log.blockNumber) > commonAncestor.blockNumber)
+                .map(log => (Object.assign(Object.assign({}, log), { removed: true })));
+            // If no common ancestor was found, start backfill from the oldest log's
+            // block number.
+            const fromBlockInclusive = commonAncestor.blockNumber === Number.NEGATIVE_INFINITY
+                ? fromHex(previousLogs[0].blockNumber)
+                : commonAncestor.blockNumber;
+            let addedLogs = yield this.getLogsInRange(filter, fromBlockInclusive, toBlockNumber + 1);
+            // De-dupe any logs that were already emitted.
+            addedLogs = addedLogs.filter(log => log &&
+                (fromHex(log.blockNumber) > commonAncestor.blockNumber ||
+                    fromHex(log.logIndex) > commonAncestor.logIndex));
+            throwIfCancelled(isCancelled);
+            return [...removedLogs, ...addedLogs];
+        });
+    }
+    /**
+     * Sets a new max backfill blocks. VISIBLE ONLY FOR TESTING.
+     *
+     * @internal
+     */
+    setMaxBackfillBlock(newMax) {
+        this.maxBackfillBlocks = newMax;
+    }
+    /**
+     * Gets the current block number as a number.
+     *
+     * @private
+     */
+    getBlockNumber() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const blockNumberHex = yield this.provider.send('eth_blockNumber');
+            return fromHex(blockNumberHex);
+        });
+    }
+    /**
+     * Gets all `newHead` events in the provided range. Note that the returned
+     * heads do not include re-orged heads. Use {@link getReorgHeads} to find heads
+     * that were part of a re-org.
+     *
+     * @private
+     */
+    getHeadEventsInRange(fromBlockInclusive, toBlockExclusive) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (fromBlockInclusive >= toBlockExclusive) {
+                return [];
+            }
+            const batchParts = [];
+            for (let i = fromBlockInclusive; i < toBlockExclusive; i++) {
+                batchParts.push({
+                    method: 'eth_getBlockByNumber',
+                    params: [toHex(i), false]
+                });
+            }
+            // TODO: just fire off each send() separately since we're no longer batching:
+            // TODO: handle errors
+            const batchedBlockHeads = yield this.provider.sendBatch(batchParts);
+            const blockHeads = batchedBlockHeads.reduce((acc, batch) => acc.concat(batch), []);
+            return blockHeads.map(toNewHeadsEvent);
+        });
+    }
+    /**
+     * Returns all heads that were part of a reorg event.
+     *
+     * @private
+     */
+    getReorgHeads(isCancelled, previousHeads) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = [];
+            // Iterate from the most recent head backwards in order to find the first
+            // block that was part of a re-org.
+            for (let i = previousHeads.length - 1; i >= 0; i--) {
+                const oldEvent = previousHeads[i];
+                const blockHead = yield this.getBlockByNumber(fromHex(oldEvent.number));
+                throwIfCancelled(isCancelled);
+                // If the hashes match, then current head in the iteration was not re-orged.
+                if (oldEvent.hash === blockHead.hash) {
+                    break;
+                }
+                result.push(toNewHeadsEvent(blockHead));
+            }
+            return result.reverse();
+        });
+    }
+    /**
+     * Simple wrapper around `eth_getBlockByNumber` that returns the complete
+     * block information for the provided block number.
+     *
+     * @private
+     */
+    getBlockByNumber(blockNumber) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.provider.send('eth_getBlockByNumber', [
+                toHex(blockNumber),
+                false
+            ]);
+        });
+    }
+    /**
+     * Given a list of previous log events, finds the common block number from the
+     * logs that matches the block head.
+     *
+     * This can be used to identify which logs are part of a re-org.
+     *
+     * Returns 1 less than the oldest log's block number if no common ancestor was found.
+     *
+     * @private
+     */
+    getCommonAncestor(isCancelled, previousLogs) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Iterate from the most recent head backwards in order to find the first
+            // block that was part of a re-org.
+            let blockHead = yield this.getBlockByNumber(fromHex(previousLogs[previousLogs.length - 1].blockNumber));
+            throwIfCancelled(isCancelled);
+            for (let i = previousLogs.length - 1; i >= 0; i--) {
+                const oldLog = previousLogs[i];
+                // Ensure that updated blocks are fetched every time the log's block number
+                // changes.
+                if (oldLog.blockNumber !== blockHead.number) {
+                    blockHead = yield this.getBlockByNumber(fromHex(oldLog.blockNumber));
+                }
+                // Since logs are ordered in ascending order, the first log that matches
+                // the hash should be the largest logIndex.
+                if (oldLog.blockHash === blockHead.hash) {
+                    return {
+                        blockNumber: fromHex(oldLog.blockNumber),
+                        logIndex: fromHex(oldLog.logIndex)
+                    };
+                }
+            }
+            return {
+                blockNumber: Number.NEGATIVE_INFINITY,
+                logIndex: Number.NEGATIVE_INFINITY
+            };
+        });
+    }
+    /**
+     * Gets all `logs` events in the provided range. Note that the returned logs
+     * do not include removed logs.
+     *
+     * @private
+     */ getLogsInRange(filter, fromBlockInclusive, toBlockExclusive) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (fromBlockInclusive >= toBlockExclusive) {
+                return [];
+            }
+            const rangeFilter = Object.assign(Object.assign({}, filter), { fromBlock: toHex(fromBlockInclusive), toBlock: toHex(toBlockExclusive - 1) });
+            return this.provider.send('eth_getLogs', [rangeFilter]);
+        });
+    }
+}
+function toNewHeadsEvent(head) {
+    const result = Object.assign({}, head);
+    delete result.totalDifficulty;
+    delete result.transactions;
+    delete result.uncles;
+    return result;
+}
+function dedupeNewHeads(events) {
+    return dedupe(events, event => event.hash);
+}
+function dedupeLogs(events) {
+    return dedupe(events, event => `${event.blockHash}/${event.logIndex}`);
+}
+function dedupe(items, getKey) {
+    const keysSeen = new Set();
+    const result = [];
+    items.forEach(item => {
+        const key = getKey(item);
+        if (!keysSeen.has(key)) {
+            keysSeen.add(key);
+            result.push(item);
+        }
+    });
+    return result;
+}
+const CANCELLED = new Error('Cancelled');
+function throwIfCancelled(isCancelled) {
+    if (isCancelled()) {
+        throw CANCELLED;
+    }
+}
+
+/**
+ * DO NOT MODIFY.
+ *
+ * Event class copied directly over from ethers.js's `BaseProvider` class.
+ *
+ * This class is used to represent events and their corresponding listeners. The
+ * SDK needs to extend this class in order to support Alchemy's custom
+ * Subscription API types. The original class is not exported by ethers. Minimal
+ * changes have been made in order to get TS to compile.
+ */
+class Event {
+    constructor(tag, listener, once) {
+        this.listener = listener;
+        this.tag = tag;
+        this.once = once;
+        this._lastBlockNumber = -2;
+        this._inflight = false;
+    }
+    get event() {
+        switch (this.type) {
+            case 'tx':
+                return this.hash;
+            case 'filter':
+                return this.filter;
+            default:
+                return this.tag;
+        }
+    }
+    get type() {
+        return this.tag.split(':')[0];
+    }
+    get hash() {
+        const comps = this.tag.split(':');
+        if (comps[0] !== 'tx') {
+            throw new Error('Not a transaction event');
+        }
+        return comps[1];
+    }
+    get filter() {
+        const comps = this.tag.split(':');
+        if (comps[0] !== 'filter') {
+            throw new Error('Not a transaction event');
+        }
+        const address = comps[1];
+        const topics = deserializeTopics(comps[2]);
+        const filter = {};
+        if (topics.length > 0) {
+            filter.topics = topics;
+        }
+        if (address && address !== '*') {
+            filter.address = address;
+        }
+        return filter;
+    }
+    pollable() {
+        const PollableEvents = ['block', 'network', 'pending', 'poll'];
+        return this.tag.indexOf(':') >= 0 || PollableEvents.indexOf(this.tag) >= 0;
+    }
+}
+/**
+ * Wrapper class around the ethers `Event` class in order to add support for
+ * Alchemy's custom subscriptions types.
+ */
+class EthersEvent extends Event {
+    get address() {
+        const comps = this.tag.split(':');
+        if (comps[0] !== 'alchemy') {
+            return null;
+        }
+        if (comps[1] && comps[1] !== '*') {
+            return comps[1];
+        }
+        else {
+            return null;
+        }
+    }
+}
+function deserializeTopics(data) {
+    if (data === '') {
+        return [];
+    }
+    return data.split(/&/g).map(topic => {
+        if (topic === '') {
+            return [];
+        }
+        const comps = topic.split('|').map(topic => {
+            return topic === 'null' ? null : topic;
+        });
+        return comps.length === 1 ? comps[0] : comps;
+    });
+}
+
+const HEARTBEAT_INTERVAL = 30000;
+const HEARTBEAT_WAIT_TIME = 10000;
+const BACKFILL_TIMEOUT = 60000;
+const BACKFILL_RETRIES = 5;
+/**
+ * Subscriptions have a memory of recent events they have sent so that in the
+ * event that they disconnect and need to backfill, they can detect re-orgs.
+ * Keep a buffer that goes back at least these many blocks, the maximum amount
+ * at which we might conceivably see a re-org.
+ *
+ * Note that while our buffer goes back this many blocks, it may contain more
+ * than this many elements, since in the case of logs subscriptions more than
+ * one event may be emitted for a block.
+ */
+const RETAINED_EVENT_BLOCK_COUNT = 10;
+class AlchemyWebSocketProvider extends providers.WebSocketProvider {
+    /**
+     * DO NOT CALL THIS CONSTRUCTOR DIRECTLY. Instead, use `Alchemy.getWebsocketProvider()`.
+     *
+     * @param network Requires one of the Alchemy `Network` enums
+     * @param apiKey The api key, or defaults to `demo`.
+     * @param wsConstructor Optional WebSocket constructor. Currently, used only
+     *   for testing purposes.
+     * @internal
+     */
+    constructor(network, apiKey, wsConstructor) {
+        // Normalize the API Key to a string.
+        apiKey = AlchemyProvider.getApiKey(apiKey);
+        // Generate our own connection info with the correct endpoint URLs.
+        const alchemyNetwork = AlchemyProvider.getAlchemyNetwork(network);
+        const connection = AlchemyProvider.getAlchemyConnectionInfo(alchemyNetwork, apiKey, 'wss');
+        const protocol = `alchemy-sdk-${VERSION}`;
+        const ws = new SturdyWebSocket__default["default"](connection.url, protocol, {
+            wsConstructor: wsConstructor !== null && wsConstructor !== void 0 ? wsConstructor : getWebsocketConstructor()
+        });
+        // Normalize the Alchemy named network input to the network names used by
+        // ethers. This allows the parent super constructor in JsonRpcProvider to
+        // correctly set the network.
+        const ethersNetwork = EthersNetwork[alchemyNetwork];
+        super(ws, ethersNetwork);
+        this._events = [];
+        // In the case of a WebSocket reconnection, all subscriptions are lost and we
+        // create new ones to replace them, but we want to create the illusion that
+        // the original subscriptions persist. Thus, maintain a mapping from the
+        // "virtual" subscription ids which are visible to the consumer to the
+        // "physical" subscription ids of the actual connections. This terminology is
+        // borrowed from virtual and physical memory, which has a similar mapping.
+        /** @internal */
+        this.virtualSubscriptionsById = new Map();
+        /** @internal */
+        this.virtualIdsByPhysicalId = new Map();
+        /**
+         * The underlying ethers {@link WebSocketProvider} already handles and emits
+         * messages. To allow backfilling, track all messages that are emitted.
+         *
+         * This is a field arrow function in order to preserve `this` context when
+         * passing the method as an event listener.
+         *
+         * @internal
+         */
+        this.handleMessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (!isSubscriptionEvent(message)) {
+                return;
+            }
+            const physicalId = message.params.subscription;
+            const virtualId = this.virtualIdsByPhysicalId.get(physicalId);
+            if (!virtualId) {
+                return;
+            }
+            const subscription = this.virtualSubscriptionsById.get(virtualId);
+            if (subscription.method !== 'eth_subscribe') {
+                return;
+            }
+            switch (subscription.params[0]) {
+                case 'newHeads': {
+                    const newHeadsSubscription = subscription;
+                    const newHeadsMessage = message;
+                    const { isBackfilling, backfillBuffer } = newHeadsSubscription;
+                    const { result } = newHeadsMessage.params;
+                    if (isBackfilling) {
+                        addToNewHeadsEventsBuffer(backfillBuffer, result);
+                    }
+                    else if (physicalId !== virtualId) {
+                        // In the case of a re-opened subscription, ethers will not emit the
+                        // event, so the SDK has to.
+                        this.emitAndRememberEvent(virtualId, result, getNewHeadsBlockNumber);
+                    }
+                    else {
+                        // Ethers subscription mapping will emit the event, just store it.
+                        this.rememberEvent(virtualId, result, getNewHeadsBlockNumber);
+                    }
+                    break;
+                }
+                case 'logs': {
+                    const logsSubscription = subscription;
+                    const logsMessage = message;
+                    const { isBackfilling, backfillBuffer } = logsSubscription;
+                    const { result } = logsMessage.params;
+                    if (isBackfilling) {
+                        addToLogsEventsBuffer(backfillBuffer, result);
+                    }
+                    else if (virtualId !== physicalId) {
+                        this.emitAndRememberEvent(virtualId, result, getLogsBlockNumber);
+                    }
+                    else {
+                        this.rememberEvent(virtualId, result, getLogsBlockNumber);
+                    }
+                    break;
+                }
+            }
+        };
+        /**
+         * When the websocket connection reopens:
+         *
+         * 1. Resubscribe to all existing subscriptions and start backfilling
+         * 2. Restart heart beat.
+         *
+         * This is a field arrow function in order to preserve `this` context when
+         * passing the method as an event listener.
+         *
+         * @internal
+         */
+        this.handleReopen = () => {
+            this.virtualIdsByPhysicalId.clear();
+            const { cancel, isCancelled } = makeCancelToken();
+            this.cancelBackfill = cancel;
+            for (const subscription of this.virtualSubscriptionsById.values()) {
+                void (() => __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        yield this.resubscribeAndBackfill(isCancelled, subscription);
+                    }
+                    catch (error) {
+                        if (!isCancelled()) {
+                            console.error(`Error while backfilling "${subscription.params[0]}" subscription. Some events may be missing.`, error);
+                        }
+                    }
+                }))();
+            }
+            this.startHeartbeat();
+        };
+        /**
+         * Cancels the heartbeat and any pending backfills being performed. This is
+         * called when the websocket connection goes down or is disconnected.
+         *
+         * This is a field arrow function in order to preserve `this` context when
+         * passing the method as an event listener.
+         *
+         * @internal
+         */
+        this.stopHeartbeatAndBackfill = () => {
+            if (this.heartbeatIntervalId != null) {
+                clearInterval(this.heartbeatIntervalId);
+                this.heartbeatIntervalId = undefined;
+            }
+            this.cancelBackfill();
+        };
+        this.apiKey = apiKey;
+        // Start heartbeat and backfiller for the websocket connection.
+        this.backfiller = new WebsocketBackfiller(this);
+        this.addSocketListeners();
+        this.startHeartbeat();
+        this.cancelBackfill = noop;
+    }
+    /**
+     * Overridden implementation of ethers' that includes Alchemy based subscriptions.
+     *
+     * @param eventName Event to subscribe to
+     * @param listener The listener function to call when the event is triggered.
+     * @override
+     * @public
+     */
+    // TODO: Override `Listener` type to get type autocompletions.
+    on(eventName, listener) {
+        return this._addEventListener(eventName, listener, false);
+    }
+    /**
+     * Overrides the method in `BaseProvider` in order to properly format the
+     * Alchemy subscription events.
+     *
+     * @internal
+     * @override
+     */
+    _addEventListener(eventName, listener, once) {
+        if (isAlchemyEvent(eventName)) {
+            const event = new EthersEvent(getAlchemyEventTag(eventName), listener, once);
+            this._events.push(event);
+            this._startEvent(event);
+            return this;
+        }
+        else {
+            return super._addEventListener(eventName, listener, once);
+        }
+    }
+    /**
+     * Overrides the `_startEvent()` method in ethers.js's
+     * {@link WebSocketProvider} to include additional alchemy methods.
+     *
+     * @param event
+     * @override
+     * @internal
+     */
+    _startEvent(event) {
+        // Check if the event type is a custom Alchemy subscription.
+        const customLogicTypes = ['alchemy', 'block', 'filter'];
+        if (customLogicTypes.includes(event.type)) {
+            this.customStartEvent(event);
+        }
+        else {
+            super._startEvent(event);
+        }
+    }
+    /**
+     * Overridden from ethers.js's {@link WebSocketProvider}
+     *
+     * Modified in order to add mappings for backfilling.
+     *
+     * @internal
+     * @override
+     */
+    _subscribe(tag, param, processFunc, event) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let subIdPromise = this._subIds[tag];
+            // BEGIN MODIFIED CODE
+            const startingBlockNumber = yield this.getBlockNumber();
+            // END MODIFIED CODE
+            if (subIdPromise == null) {
+                subIdPromise = Promise.all(param).then(param => {
+                    return this.send('eth_subscribe', param);
+                });
+                this._subIds[tag] = subIdPromise;
+            }
+            const subId = yield subIdPromise;
+            // BEGIN MODIFIED CODE
+            const resolvedParams = yield Promise.all(param);
+            this.virtualSubscriptionsById.set(subId, {
+                event: event,
+                method: 'eth_subscribe',
+                params: resolvedParams,
+                startingBlockNumber,
+                virtualId: subId,
+                physicalId: subId,
+                sentEvents: [],
+                isBackfilling: false,
+                backfillBuffer: []
+            });
+            this.virtualIdsByPhysicalId.set(subId, subId);
+            // END MODIFIED CODE
+            this._subs[subId] = { tag, processFunc };
+        });
+    }
+    /**
+     * DO NOT MODIFY.
+     *
+     * Original code copied over from ether.js's `BaseProvider`.
+     *
+     * This method is copied over directly in order to implement Alchemy's unique
+     * subscription types. The only difference is that this method calls
+     * {@link getAlchemyEventTag} instead of the original `getEventTag()` method in
+     * order to parse the Alchemy subscription event.
+     *
+     * @internal
+     * @override
+     */
+    emit(eventName, ...args) {
+        if (isAlchemyEvent(eventName)) {
+            let result = false;
+            const stopped = [];
+            // This line is the only modified line from the original method.
+            const eventTag = getAlchemyEventTag(eventName);
+            this._events = this._events.filter(event => {
+                if (event.tag !== eventTag) {
+                    return true;
+                }
+                setTimeout(() => {
+                    event.listener.apply(this, args);
+                }, 0);
+                result = true;
+                if (event.once) {
+                    stopped.push(event);
+                    return false;
+                }
+                return true;
+            });
+            stopped.forEach(event => {
+                this._stopEvent(event);
+            });
+            return result;
+        }
+        else {
+            return super.emit(eventName, ...args);
+        }
+    }
+    /** @internal */
+    sendBatch(parts) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let nextId = 0;
+            const payload = parts.map(({ method, params }) => {
+                return {
+                    method,
+                    params,
+                    jsonrpc: '2.0',
+                    id: `alchemy-sdk:${nextId++}`
+                };
+            });
+            const response = yield this.sendBatchConcurrently(payload);
+            const errorResponse = response.find(r => !!r.error);
+            if (errorResponse) {
+                throw new Error(errorResponse.error.message);
+            }
+            // The ids are ascending numbers because that's what Payload Factories do.
+            return response
+                .sort((r1, r2) => r1.id - r2.id)
+                .map(r => r.result);
+        });
+    }
+    /** @override */
+    destroy() {
+        this.removeSocketListeners();
+        this.stopHeartbeatAndBackfill();
+        return super.destroy();
+    }
+    /**
+     * Overrides the ether's `isCommunityResource()` method. Returns true if the
+     * current api key is the default key.
+     *
+     * @override
+     */
+    isCommunityResource() {
+        return this.apiKey === DEFAULT_ALCHEMY_API_KEY;
+    }
+    /** @internal */
+    addSocketListeners() {
+        this._websocket.addEventListener('message', this.handleMessage);
+        this._websocket.addEventListener('reopen', this.handleReopen);
+        this._websocket.addEventListener('down', this.stopHeartbeatAndBackfill);
+    }
+    /** @internal */
+    removeSocketListeners() {
+        this._websocket.removeEventListener('message', this.handleMessage);
+        this._websocket.removeEventListener('reopen', this.handleReopen);
+        this._websocket.removeEventListener('down', this.stopHeartbeatAndBackfill);
+    }
+    /**
+     * Reopens the backfill based on
+     *
+     * @param isCancelled
+     * @param subscription
+     * @internal
+     */
+    resubscribeAndBackfill(isCancelled, subscription) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { virtualId, method, params, sentEvents, backfillBuffer, startingBlockNumber } = subscription;
+            subscription.isBackfilling = true;
+            backfillBuffer.length = 0;
+            try {
+                const physicalId = yield this.send(method, params);
+                throwIfCancelled(isCancelled);
+                subscription.physicalId = physicalId;
+                this.virtualIdsByPhysicalId.set(physicalId, virtualId);
+                switch (params[0]) {
+                    case 'newHeads': {
+                        const backfillEvents = yield withBackoffRetries(() => withTimeout(this.backfiller.getNewHeadsBackfill(isCancelled, sentEvents, startingBlockNumber), BACKFILL_TIMEOUT), BACKFILL_RETRIES, () => !isCancelled());
+                        throwIfCancelled(isCancelled);
+                        const events = dedupeNewHeads([...backfillEvents, ...backfillBuffer]);
+                        events.forEach(event => this.emitNewHeadsEvent(virtualId, event));
+                        break;
+                    }
+                    case 'logs': {
+                        const filter = params[1] || {};
+                        const backfillEvents = yield withBackoffRetries(() => withTimeout(this.backfiller.getLogsBackfill(isCancelled, filter, sentEvents, startingBlockNumber), BACKFILL_TIMEOUT), BACKFILL_RETRIES, () => !isCancelled());
+                        throwIfCancelled(isCancelled);
+                        const events = dedupeLogs([...backfillEvents, ...backfillBuffer]);
+                        events.forEach(event => this.emitLogsEvent(virtualId, event));
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            finally {
+                subscription.isBackfilling = false;
+                backfillBuffer.length = 0;
+            }
+        });
+    }
+    /** @internal */
+    emitNewHeadsEvent(virtualId, result) {
+        this.emitAndRememberEvent(virtualId, result, getNewHeadsBlockNumber);
+    }
+    /** @internal */
+    emitLogsEvent(virtualId, result) {
+        this.emitAndRememberEvent(virtualId, result, getLogsBlockNumber);
+    }
+    /**
+     * Emits an event to consumers, but also remembers it in its subscriptions's
+     * `sentEvents` buffer so that we can detect re-orgs if the connection drops
+     * and needs to be reconnected.
+     *
+     * @internal
+     */
+    emitAndRememberEvent(virtualId, result, getBlockNumber) {
+        this.rememberEvent(virtualId, result, getBlockNumber);
+        const subscription = this.virtualSubscriptionsById.get(virtualId);
+        if (!subscription) {
+            return;
+        }
+        this.emitGenericEvent(subscription, result);
+    }
+    /** @internal */
+    rememberEvent(virtualId, result, getBlockNumber) {
+        const subscription = this.virtualSubscriptionsById.get(virtualId);
+        if (!subscription) {
+            return;
+        }
+        // Web3 modifies these event objects once we pass them on (changing hex
+        // numbers to numbers). We want the original event, so make a defensive
+        // copy.
+        addToPastEventsBuffer(subscription.sentEvents, Object.assign({}, result), getBlockNumber);
+    }
+    /** @internal */
+    emitGenericEvent(subscription, result) {
+        const emitFunction = this.emitProcessFn(subscription.event);
+        emitFunction(result);
+    }
+    /**
+     * Starts a heartbeat that pings the websocket server periodically to ensure
+     * that the connection stays open.
+     *
+     * @internal
+     */
+    startHeartbeat() {
+        if (this.heartbeatIntervalId != null) {
+            return;
+        }
+        this.heartbeatIntervalId = setInterval(() => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield withTimeout(this.send('net_version'), HEARTBEAT_WAIT_TIME);
+            }
+            catch (_a) {
+                this._websocket.reconnect();
+            }
+        }), HEARTBEAT_INTERVAL);
+    }
+    /**
+     * This method sends the batch concurrently as individual requests rather than
+     * as a batch, which was the original implementation. The original batch logic
+     * is preserved in this implementation in order for faster porting.
+     *
+     * @param payload
+     * @internal
+     */
+    // TODO(cleanup): Refactor and remove usages of `sendBatch()`.
+    // TODO(errors): Use allSettled() once we have more error handling.
+    sendBatchConcurrently(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return Promise.all(payload.map(req => this.send(req.method, req.params)));
+        });
+    }
+    /** @internal */
+    customStartEvent(event) {
+        if (event.type === 'alchemy') {
+            const { address } = event;
+            if (!!address) {
+                void this._subscribe(event.tag, ['alchemy_filteredNewFullPendingTransactions', { address }], this.emitProcessFn(event), event);
+            }
+            else {
+                void this._subscribe(event.tag, ['alchemy_newFullPendingTransactions'], this.emitProcessFn(event), event);
+            }
+        }
+        else if (event.type === 'block') {
+            void this._subscribe('block', ['newHeads'], this.emitProcessFn(event), event);
+        }
+        else if (event.type === 'filter') {
+            void this._subscribe(event.tag, ['logs', this._getFilter(event.filter)], this.emitProcessFn(event), event);
+        }
+    }
+    /** @internal */
+    emitProcessFn(event) {
+        switch (event.type) {
+            case 'alchemy':
+                const { address } = event;
+                if (!!address) {
+                    return result => this.emit({
+                        method: 'alchemy_filteredNewFullPendingTransactions',
+                        address: event.address
+                    }, result);
+                }
+                else {
+                    return result => this.emit({ method: 'alchemy_newFullPendingTransactions' }, result);
+                }
+            case 'block':
+                return result => {
+                    const blockNumber = bignumber.BigNumber.from(result.number).toNumber();
+                    this._emitted.block = blockNumber;
+                    this.emit('block', blockNumber);
+                };
+            case 'filter':
+                return result => {
+                    if (result.removed == null) {
+                        result.removed = false;
+                    }
+                    this.emit(event.filter, this.formatter.filterLog(result));
+                };
+            default:
+                throw new Error('Invalid event type to `emitProcessFn()`');
+        }
+    }
+}
+function getWebsocketConstructor() {
+    return isNodeEnvironment() ? require('websocket').w3cwebsocket : WebSocket;
+}
+function isNodeEnvironment() {
+    return (typeof process !== 'undefined' &&
+        process != null &&
+        process.versions != null &&
+        process.versions.node != null);
+}
+// TODO(cleanup): Use class variable rather than passing `isCancelled` everywhere.
+function makeCancelToken() {
+    let cancelled = false;
+    return { cancel: () => (cancelled = true), isCancelled: () => cancelled };
+}
+// TODO(cleanup): replace with SDK's backoff implementation
+const MIN_RETRY_DELAY = 1000;
+const RETRY_BACKOFF_FACTOR = 2;
+const MAX_RETRY_DELAY = 30000;
+function withBackoffRetries(f, retryCount, shouldRetry = () => true) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let nextWaitTime = 0;
+        let i = 0;
+        while (true) {
+            try {
+                return yield f();
+            }
+            catch (error) {
+                i++;
+                if (i >= retryCount || !shouldRetry(error)) {
+                    throw error;
+                }
+                yield delay(nextWaitTime);
+                if (!shouldRetry(error)) {
+                    throw error;
+                }
+                nextWaitTime =
+                    nextWaitTime === 0
+                        ? MIN_RETRY_DELAY
+                        : Math.min(MAX_RETRY_DELAY, RETRY_BACKOFF_FACTOR * nextWaitTime);
+            }
+        }
+    });
+}
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+function withTimeout(promise, ms) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+    ]);
+}
+function getNewHeadsBlockNumber(event) {
+    return fromHex(event.number);
+}
+function getLogsBlockNumber(event) {
+    return fromHex(event.blockNumber);
+}
+function isResponse(message) {
+    return (Array.isArray(message) ||
+        (message.jsonrpc === '2.0' && message.id !== undefined));
+}
+function isSubscriptionEvent(message) {
+    return !isResponse(message);
+}
+function addToNewHeadsEventsBuffer(pastEvents, event) {
+    addToPastEventsBuffer(pastEvents, event, getNewHeadsBlockNumber);
+}
+function addToLogsEventsBuffer(pastEvents, event) {
+    addToPastEventsBuffer(pastEvents, event, getLogsBlockNumber);
+}
+/**
+ * Adds a new event to an array of events, evicting any events which are so old
+ * that they will no longer feasibly be part of a reorg.
+ */
+function addToPastEventsBuffer(pastEvents, event, getBlockNumber) {
+    const currentBlockNumber = getBlockNumber(event);
+    // Find first index of an event recent enough to retain, then drop everything
+    // at a lower index.
+    const firstGoodIndex = pastEvents.findIndex(e => getBlockNumber(e) > currentBlockNumber - RETAINED_EVENT_BLOCK_COUNT);
+    if (firstGoodIndex === -1) {
+        pastEvents.length = 0;
+    }
+    else {
+        pastEvents.splice(0, firstGoodIndex);
+    }
+    pastEvents.push(event);
+}
+function isAlchemyEvent(event) {
+    return typeof event === 'object' && 'method' in event;
+}
+function getAlchemyEventTag(event) {
+    if (!isAlchemyEvent(event)) {
+        throw new Error('Event tag requires AlchemyEventType');
+    }
+    return 'alchemy:' + (('address' in event && event.address) || '*');
+}
+
+/**
+ * Entry point into the Alchemy SDK.
+ *
+ * @param config - Configuration object for the Alchemy SDK
+ * @public
+ */
+function initializeAlchemy(config) {
+    return new Alchemy(config);
+}
+/**
+ * The Alchemy SDK client. This class holds config information and must be
+ * passed into SDK methods.
+ *
+ * Do not call this constructor directly. Instead, use {@link initializeAlchemy}
+ * to get an instance of the SDK.
+ *
+ * @public
+ */
+class Alchemy {
+    /**
+     * @hideconstructor
+     * @internal
+     */
+    constructor(config) {
+        this.apiKey = (config === null || config === void 0 ? void 0 : config.apiKey) || DEFAULT_ALCHEMY_API_KEY;
+        this.network = (config === null || config === void 0 ? void 0 : config.network) || DEFAULT_NETWORK;
+        this.maxRetries = (config === null || config === void 0 ? void 0 : config.maxRetries) || DEFAULT_MAX_RETRIES;
+    }
+    /** @internal */
+    getBaseUrl() {
+        return getAlchemyHttpUrl(this.network, this.apiKey);
+    }
+    /** @internal */
+    getNftUrl() {
+        return getAlchemyNftHttpUrl(this.network, this.apiKey);
+    }
+    /**
+     * Changes the network that the SDK requests data from.
+     *
+     * @param network - The network to change to.
+     * @public
+     */
+    setNetwork(network) {
+        // TODO(ethers): Add support for changing the network in the returned provider.
+        this.network = network;
+    }
+    /**
+     * Creates an AlchemyProvider instance. Only one provider is created per
+     * Alchemy instance.
+     *
+     * @public
+     */
+    getProvider() {
+        if (!this._baseAlchemyProvider) {
+            this._baseAlchemyProvider = new AlchemyProvider(this.network, this.apiKey, this.maxRetries);
+        }
+        return this._baseAlchemyProvider;
+    }
+    /**
+     * Creates an AlchemyWebsocketProvider instance. Only one provider is created
+     * per Alchemy instance.
+     *
+     * @public
+     */
+    getWebsocketProvider() {
+        if (!this._baseAlchemyWssProvider) {
+            this._baseAlchemyWssProvider = new AlchemyWebSocketProvider(this.network, this.apiKey);
+        }
+        return this._baseAlchemyWssProvider;
+    }
+}
+
+/**
+ * Given a REST endpoint, method, and params, sends the request with axios and
+ * returns the response.
+ */
+const IS_BROWSER = typeof window !== 'undefined' && window !== null;
+/**
+ * Helper function to send http requests using Axis.
+ *
+ * @private
+ */
+// TODO: Support other methods besides GET + other http options.
+function sendAxiosRequest(baseUrl, methodName, params) {
+    const methodUrl = baseUrl + '/' + methodName;
+    const config = {
+        headers: IS_BROWSER
+            ? {
+                'Alchemy-Ethers-Sdk-Version': VERSION
+            }
+            : {
+                'Alchemy-Ethers-Sdk-Version': VERSION,
+                'Accept-Encoding': 'gzip'
+            },
+        method: 'get',
+        url: methodUrl,
+        params
+    };
+    return axios__default["default"](config);
+}
+
+const DEFAULT_BACKOFF_INITIAL_DELAY_MS = 1000;
+const DEFAULT_BACKOFF_MULTIPLIER = 1.5;
+const DEFAULT_BACKOFF_MAX_DELAY_MS = 30 * 1000;
+const DEFAULT_BACKOFF_MAX_ATTEMPTS = 5;
+/**
+ * Helper class for implementing exponential backoff and max retry attempts.
+ *
+ * @private
+ * @internal
+ */
+class ExponentialBackoff {
+    constructor(maxAttempts = DEFAULT_BACKOFF_MAX_ATTEMPTS) {
+        this.maxAttempts = maxAttempts;
+        this.initialDelayMs = DEFAULT_BACKOFF_INITIAL_DELAY_MS;
+        this.backoffMultiplier = DEFAULT_BACKOFF_MULTIPLIER;
+        this.maxDelayMs = DEFAULT_BACKOFF_MAX_DELAY_MS;
+        this.numAttempts = 0;
+        this.currentDelayMs = 0;
+        this.isInBackoff = false;
+    }
+    /**
+     * Returns a promise that resolves after the the backoff delay. The delay is
+     * increased for each attempt. The promise is rejected if the maximum number
+     * of attempts is exceeded.
+     */
+    // TODO: beautify this into an async iterator.
+    backoff() {
+        if (this.numAttempts >= this.maxAttempts) {
+            return Promise.reject(new Error(`Exceeded maximum number of attempts: ${this.maxAttempts}`));
+        }
+        if (this.isInBackoff) {
+            return Promise.reject(new Error('A backoff operation is already in progress'));
+        }
+        const backoffDelayWithJitterMs = this.withJitterMs(this.currentDelayMs);
+        if (backoffDelayWithJitterMs > 0) {
+            logDebug('ExponentialBackoff.backoff', `Backing off for ${backoffDelayWithJitterMs}ms`);
+        }
+        // Calculate the next delay.
+        this.currentDelayMs *= this.backoffMultiplier;
+        this.currentDelayMs = Math.max(this.currentDelayMs, this.initialDelayMs);
+        this.currentDelayMs = Math.min(this.currentDelayMs, this.maxDelayMs);
+        this.numAttempts += 1;
+        return new Promise(resolve => {
+            this.isInBackoff = true;
+            setTimeout(() => {
+                this.isInBackoff = false;
+                resolve();
+            }, backoffDelayWithJitterMs);
+        });
+    }
+    /**
+     * Applies +/- 50% jitter to the backoff delay, up to the max delay cap.
+     *
+     * @private
+     * @param delayMs
+     */
+    withJitterMs(delayMs) {
+        return Math.min(delayMs + (Math.random() - 0.5) * delayMs, this.maxDelayMs);
+    }
+}
+
+/**
+ * A wrapper function to make http requests and retry if the request fails.
+ *
+ * @param alchemy
+ * @param method
+ * @param params
+ * @internal
+ */
+// TODO: Wrap Axios error in AlchemyError.
+function requestHttpWithBackoff(alchemy, apiType, method, params) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let lastError = undefined;
+        const backoff = new ExponentialBackoff(alchemy.maxRetries);
+        for (let attempt = 0; attempt < alchemy.maxRetries + 1; attempt++) {
+            try {
+                if (lastError !== undefined) {
+                    logInfo('requestHttp', `Retrying after error: ${lastError.message}`);
+                }
+                try {
+                    yield backoff.backoff();
+                }
+                catch (err) {
+                    // Backoff errors when the maximum number of attempts is reached. Break
+                    // out of the loop to preserve the last error.
+                    break;
+                }
+                let response;
+                switch (apiType) {
+                    case AlchemyApiType.NFT:
+                        response = yield sendAxiosRequest(alchemy.getNftUrl(), method, params);
+                        break;
+                    default:
+                    case AlchemyApiType.BASE:
+                        response = yield sendAxiosRequest(alchemy.getBaseUrl(), method, params);
+                        break;
+                }
+                if (response.status === 200) {
+                    logDebug(method, `Successful request: ${method}`);
+                    return response.data;
+                }
+                else {
+                    logInfo(method, `Request failed: ${method}, ${response.status}, ${response.data}`);
+                    lastError = new Error(response.status + ': ' + response.data);
+                }
+            }
+            catch (err) {
+                if (!axios__default["default"].isAxiosError(err) || err.response === undefined) {
+                    throw err;
+                }
+                // TODO: Standardize all errors into AlchemyError
+                lastError = new Error(err.response.status + ': ' + err.response.data);
+                if (!isRetryableHttpError(err)) {
+                    break;
+                }
+            }
+        }
+        return Promise.reject(lastError);
+    });
+}
+function isRetryableHttpError(err) {
+    const retryableCodes = [429];
+    return (err.response !== undefined && retryableCodes.includes(err.response.status));
+}
+/**
+ * Fetches all pages in a paginated endpoint, given a `pageKey` field that
+ * represents the property name containing the next page token.
+ *
+ * @internal
+ */
+function paginateEndpoint(alchemy, apiType, methodName, reqPageKey, resPageKey, params) {
+    return __asyncGenerator(this, arguments, function* paginateEndpoint_1() {
+        let hasNext = true;
+        const requestParams = Object.assign({}, params);
+        while (hasNext) {
+            const response = yield __await(requestHttpWithBackoff(alchemy, apiType, methodName, requestParams));
+            yield yield __await(response);
+            if (response[resPageKey] !== undefined) {
+                requestParams[reqPageKey] = response[resPageKey];
+            }
+            else {
+                hasNext = false;
+            }
+        }
+    });
+}
+
+function formatBlock(block) {
+    if (typeof block === 'string') {
+        return block;
+    }
+    else if (Number.isInteger(block)) {
+        return toHex(block);
+    }
+    return block.toString();
+}
+function getNftContractFromRaw(rawNftContract) {
+    return {
+        address: rawNftContract.address,
+        name: rawNftContract.contractMetadata.name,
+        symbol: rawNftContract.contractMetadata.symbol,
+        totalSupply: rawNftContract.contractMetadata.totalSupply,
+        tokenType: parseNftTokenType(rawNftContract.contractMetadata.tokenType)
+    };
+}
+function getBaseNftFromRaw(rawBaseNft, contractAddress) {
+    var _a;
+    return {
+        contract: { address: contractAddress },
+        tokenId: bignumber.BigNumber.from(rawBaseNft.id.tokenId).toString(),
+        tokenType: parseNftTokenType((_a = rawBaseNft.id.tokenMetadata) === null || _a === void 0 ? void 0 : _a.tokenType)
+    };
+}
+function getNftFromRaw(rawNft, contractAddress) {
+    var _a;
+    return {
+        contract: { address: contractAddress },
+        tokenId: parseNftTokenId(rawNft.id.tokenId),
+        tokenType: parseNftTokenType((_a = rawNft.id.tokenMetadata) === null || _a === void 0 ? void 0 : _a.tokenType),
+        title: rawNft.title,
+        description: parseNftDescription(rawNft.description),
+        timeLastUpdated: rawNft.timeLastUpdated,
+        metadataError: rawNft.error,
+        rawMetadata: rawNft.metadata,
+        tokenUri: parseNftTokenUri(rawNft.tokenUri),
+        media: parseNftTokenUriArray(rawNft.media)
+    };
+}
+function parseNftTokenId(tokenId) {
+    // We have to normalize the token id here since the backend sometimes
+    // returns the token ID as a hex string and sometimes as an integer.
+    return bignumber.BigNumber.from(tokenId).toString();
+}
+function parseNftTokenType(tokenType) {
+    switch (tokenType) {
+        case 'erc721':
+        case 'ERC721':
+            return exports.NftTokenType.ERC721;
+        case 'erc1155':
+        case 'ERC1155':
+            return exports.NftTokenType.ERC1155;
+        default:
+            return exports.NftTokenType.UNKNOWN;
+    }
+}
+function parseNftDescription(description) {
+    if (description === undefined) {
+        return '';
+    }
+    return typeof description === 'string' ? description : description.join(' ');
+}
+function parseNftTokenUri(uri) {
+    if (uri && uri.raw.length === 0 && uri.gateway.length == 0) {
+        return undefined;
+    }
+    return uri;
+}
+function parseNftTokenUriArray(arr) {
+    if (arr === undefined) {
+        return [];
+    }
+    return arr.filter(uri => parseNftTokenUri(uri) !== undefined);
+}
+
+/** @public */
+function getTokenBalances(alchemy, address, contractAddresses) {
+    if (contractAddresses && contractAddresses.length > 1500) {
+        throw new Error('You cannot pass in more than 1500 contract addresses to getTokenBalances()');
+    }
+    return alchemy
+        .getProvider()
+        .send('alchemy_getTokenBalances', [
+        address,
+        contractAddresses || DEFAULT_CONTRACT_ADDRESSES
+    ]);
+}
+/** @public */
+function getTokenMetadata(alchemy, address) {
+    return alchemy.getProvider().send('alchemy_getTokenMetadata', [address]);
+}
+/** @public */
+function getAssetTransfers(alchemy, params) {
+    return alchemy.getProvider().send('alchemy_getAssetTransfers', [
+        Object.assign(Object.assign({}, params), { fromBlock: params.fromBlock != null ? formatBlock(params.fromBlock) : undefined, toBlock: params.toBlock != null ? formatBlock(params.toBlock) : undefined, maxCount: params.maxCount != null ? toHex(params.maxCount) : undefined })
+    ]);
+}
+/** @public */
+function getTransactionReceipts(alchemy, params) {
+    return alchemy.getProvider().send('alchemy_getTransactionReceipts', [params]);
+}
+
+const ETH_NULL_VALUE = '0x';
+function getNftMetadata(alchemy, contractAddressOrBaseNft, tokenId, tokenType) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let response;
+        let contractAddress;
+        if (typeof contractAddressOrBaseNft === 'string') {
+            contractAddress = contractAddressOrBaseNft;
+            response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getNFTMetadata', {
+                contractAddress: contractAddressOrBaseNft,
+                tokenId: bignumber.BigNumber.from(tokenId).toString(),
+                tokenType: tokenType !== exports.NftTokenType.UNKNOWN ? tokenType : undefined
+            });
+        }
+        else {
+            contractAddress = contractAddressOrBaseNft.contract.address;
+            response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getNFTMetadata', {
+                contractAddress: contractAddressOrBaseNft.contract.address,
+                tokenId: bignumber.BigNumber.from(contractAddressOrBaseNft.tokenId).toString(),
+                tokenType: contractAddressOrBaseNft.tokenType !== exports.NftTokenType.UNKNOWN
+                    ? contractAddressOrBaseNft.tokenType
+                    : undefined
+            });
+        }
+        return getNftFromRaw(response, contractAddress);
+    });
+}
+function getNftContractMetadata(alchemy, contractAddressOrBaseNftContract) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let response;
+        if (typeof contractAddressOrBaseNftContract === 'string') {
+            response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getContractMetadata', {
+                contractAddress: contractAddressOrBaseNftContract
+            });
+        }
+        else {
+            response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getContractMetadata', {
+                contractAddress: contractAddressOrBaseNftContract.address
+            });
+        }
+        return getNftContractFromRaw(response);
+    });
+}
+function getNftsForOwnerIterator(alchemy, owner, options) {
+    return __asyncGenerator(this, arguments, function* getNftsForOwnerIterator_1() {
+        var e_1, _a;
+        const withMetadata = omitMetadataToWithMetadata(options === null || options === void 0 ? void 0 : options.omitMetadata);
+        try {
+            for (var _b = __asyncValues(paginateEndpoint(alchemy, AlchemyApiType.NFT, 'getNFTs', 'pageKey', 'pageKey', {
+                contractAddresses: options === null || options === void 0 ? void 0 : options.contractAddresses,
+                pageKey: options === null || options === void 0 ? void 0 : options.pageKey,
+                filters: options === null || options === void 0 ? void 0 : options.excludeFilters,
+                owner,
+                withMetadata
+            })), _c; _c = yield __await(_b.next()), !_c.done;) {
+                const response = _c.value;
+                for (const ownedNft of response.ownedNfts) {
+                    yield yield __await(Object.assign(Object.assign({}, nftFromGetNftResponse(ownedNft)), { balance: parseInt(ownedNft.balance) }));
+                }
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) yield __await(_a.call(_b));
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+    });
+}
+function getNftsForOwner(alchemy, owner, options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const withMetadata = omitMetadataToWithMetadata(options === null || options === void 0 ? void 0 : options.omitMetadata);
+        const response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getNFTs', {
+            contractAddresses: options === null || options === void 0 ? void 0 : options.contractAddresses,
+            pageKey: options === null || options === void 0 ? void 0 : options.pageKey,
+            filters: options === null || options === void 0 ? void 0 : options.excludeFilters,
+            owner,
+            withMetadata
+        });
+        return {
+            ownedNfts: response.ownedNfts.map(res => (Object.assign(Object.assign({}, nftFromGetNftResponse(res)), { balance: parseInt(res.balance) }))),
+            pageKey: response.pageKey,
+            totalCount: response.totalCount
+        };
+    });
+}
+function getNftsForCollection(alchemy, contractAddress, options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const withMetadata = omitMetadataToWithMetadata(options === null || options === void 0 ? void 0 : options.omitMetadata);
+        const response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getNFTsForCollection', {
+            contractAddress,
+            startToken: options === null || options === void 0 ? void 0 : options.pageKey,
+            withMetadata
+        });
+        return {
+            nfts: response.nfts.map(res => nftFromGetNftCollectionResponse(res, contractAddress)),
+            pageKey: response.nextToken
+        };
+    });
+}
+function getOwnersForNft(alchemy, contractAddressOrNft, tokenId) {
+    if (typeof contractAddressOrNft === 'string') {
+        return requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getOwnersForToken', {
+            contractAddress: contractAddressOrNft,
+            tokenId: bignumber.BigNumber.from(tokenId).toString()
+        });
+    }
+    else {
+        return requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getOwnersForToken', {
+            contractAddress: contractAddressOrNft.contract.address,
+            tokenId: bignumber.BigNumber.from(contractAddressOrNft.tokenId).toString()
+        });
+    }
+}
+function getOwnersForCollection(alchemy, contractAddressOrNft) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let response;
+        if (typeof contractAddressOrNft === 'string') {
+            response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getOwnersForCollection', {
+                contractAddress: contractAddressOrNft
+            });
+        }
+        else {
+            response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getOwnersForCollection', {
+                contractAddress: contractAddressOrNft.contract.address
+            });
+        }
+        return {
+            owners: response.ownerAddresses
+        };
+    });
+}
+function getNftsForCollectionIterator(alchemy, contractAddress, options) {
+    return __asyncGenerator(this, arguments, function* getNftsForCollectionIterator_1() {
+        var e_2, _a;
+        const withMetadata = omitMetadataToWithMetadata(options === null || options === void 0 ? void 0 : options.omitMetadata);
+        try {
+            for (var _b = __asyncValues(paginateEndpoint(alchemy, AlchemyApiType.NFT, 'getNFTsForCollection', 'startToken', 'nextToken', {
+                contractAddress,
+                startToken: options === null || options === void 0 ? void 0 : options.pageKey,
+                withMetadata
+            })), _c; _c = yield __await(_b.next()), !_c.done;) {
+                const response = _c.value;
+                for (const nft of response.nfts) {
+                    yield yield __await(nftFromGetNftCollectionResponse(nft, contractAddress));
+                }
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) yield __await(_a.call(_b));
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+    });
+}
+/**
+ * Checks that the provided owner address owns one of more of the provided NFTs.
+ *
+ * @param alchemy - The Alchemy SDK instance.
+ * @param owner - The owner address to check.
+ * @param contractAddresses - An array of NFT contract addresses to check ownership for.
+ * @beta
+ */
+function checkNftOwnership(alchemy, owner, contractAddresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (contractAddresses.length === 0) {
+            throw new Error('Must provide at least one contract address');
+        }
+        const response = yield getNftsForOwner(alchemy, owner, {
+            contractAddresses,
+            omitMetadata: true
+        });
+        return response.ownedNfts.length > 0;
+    });
+}
+/**
+ * Returns whether a contract is marked as spam or not by Alchemy. For more
+ * information on how we classify spam, go to our NFT API FAQ at
+ * https://docs.alchemy.com/alchemy/enhanced-apis/nft-api/nft-api-faq#nft-spam-classification.
+ *
+ * @param alchemy - The Alchemy SDK instance.
+ * @param contractAddress - The contract address to check.
+ * @beta
+ */
+function isSpamNftContract(alchemy, contractAddress) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'isSpamContract', {
+            contractAddress
+        });
+    });
+}
+/**
+ * Returns a list of all spam contracts marked by Alchemy. For details on how
+ * Alchemy marks spam contracts, go to
+ * https://docs.alchemy.com/alchemy/enhanced-apis/nft-api/nft-api-faq#nft-spam-classification.
+ *
+ * @param alchemy - The Alchemy SDK instance.
+ * @beta
+ */
+function getSpamNftContracts(alchemy) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getSpamContracts', undefined);
+    });
+}
+/**
+ * Returns the floor prices of a NFT contract by marketplace.
+ *
+ * @param alchemy - The Alchemy SDK instance.
+ * @param contractAddress - The contract address for the NFT collection.
+ * @beta
+ */
+function getNftFloorPrice(alchemy, contractAddress) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getFloorPrice', {
+            contractAddress
+        });
+    });
+}
+/**
+ * Finds the address that deployed the provided contract and block number it was
+ * deployed in.
+ *
+ * NOTE: This method performs a binary search across all blocks since genesis
+ * and can take a long time to complete. This method is a convenience method
+ * that will eventually be replaced by a single call to an Alchemy endpoint with
+ * this information cached.
+ *
+ * @param alchemy - The Alchemy SDK instance.
+ * @param contractAddress - The contract address to find the deployer for.
+ * @beta
+ */
+function findContractDeployer(alchemy, contractAddress) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const provider = alchemy.getProvider();
+        const currentBlockNum = yield provider.getBlockNumber();
+        if ((yield provider.getCode(contractAddress, currentBlockNum)) ===
+            ETH_NULL_VALUE) {
+            throw new Error(`Contract '${contractAddress}' does not exist`);
+        }
+        // Binary search for the block number that the contract was deployed in.
+        const firstBlock = yield binarySearchFirstBlock(0, currentBlockNum + 1, contractAddress, alchemy);
+        // Find the first transaction in the block that matches the provided address.
+        const txReceipts = yield getTransactionReceipts(alchemy, {
+            blockNumber: toHex(firstBlock)
+        });
+        const matchingReceipt = (_a = txReceipts.receipts) === null || _a === void 0 ? void 0 : _a.find(receipt => receipt.contractAddress === contractAddress.toLowerCase());
+        return {
+            deployerAddress: matchingReceipt === null || matchingReceipt === void 0 ? void 0 : matchingReceipt.from,
+            blockNumber: firstBlock
+        };
+    });
+}
+function refreshNftMetadata(alchemy, contractAddressOrBaseNft, tokenId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let contractAddress;
+        let tokenIdString;
+        if (typeof contractAddressOrBaseNft === 'string') {
+            contractAddress = contractAddressOrBaseNft;
+            tokenIdString = bignumber.BigNumber.from(tokenId).toString();
+        }
+        else {
+            contractAddress = contractAddressOrBaseNft.contract.address;
+            tokenIdString = contractAddressOrBaseNft.tokenId;
+        }
+        const first = yield getNftMetadata(alchemy, contractAddress, tokenIdString);
+        const second = yield refresh(alchemy, contractAddress, tokenIdString);
+        return first.timeLastUpdated !== second.timeLastUpdated;
+    });
+}
+function refresh(alchemy, contractAddress, tokenId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield requestHttpWithBackoff(alchemy, AlchemyApiType.NFT, 'getNFTMetadata', {
+            contractAddress,
+            tokenId: bignumber.BigNumber.from(tokenId).toString(),
+            refreshCache: true
+        });
+        return getNftFromRaw(response, contractAddress);
+    });
+}
+/**
+ * Perform a binary search between an integer range of block numbers to find the
+ * block number where the contract was deployed.
+ *
+ * @internal
+ */
+function binarySearchFirstBlock(start, end, address, alchemy) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (start >= end) {
+            return end;
+        }
+        const mid = Math.floor((start + end) / 2);
+        const code = yield alchemy.getProvider().getCode(address, mid);
+        if (code === ETH_NULL_VALUE) {
+            return binarySearchFirstBlock(mid + 1, end, address, alchemy);
+        }
+        return binarySearchFirstBlock(start, mid, address, alchemy);
+    });
+}
+/**
+ * Helper method to convert a NFT response received from Alchemy backend to an
+ * SDK NFT type.
+ *
+ * @internal
+ */
+function nftFromGetNftResponse(ownedNft) {
+    if (isNftWithMetadata(ownedNft)) {
+        return getNftFromRaw(ownedNft, ownedNft.contract.address);
+    }
+    else {
+        return getBaseNftFromRaw(ownedNft, ownedNft.contract.address);
+    }
+}
+/**
+ * Helper method to convert a NFT response received from Alchemy backend to an
+ * SDK NFT type.
+ *
+ * @internal
+ */
+function nftFromGetNftCollectionResponse(ownedNft, contractAddress) {
+    if (isNftWithMetadata(ownedNft)) {
+        return getNftFromRaw(ownedNft, contractAddress);
+    }
+    else {
+        return getBaseNftFromRaw(ownedNft, contractAddress);
+    }
+}
+/** @internal */
+// TODO: more comprehensive type check
+function isNftWithMetadata(response) {
+    return response.title !== undefined;
+}
+/**
+ * Flips the `omitMetadata` SDK parameter type to the `withMetadata` parameter
+ * required by the Alchemy API. If `omitMetadata` is undefined, the SDK defaults
+ * to including metadata.
+ *
+ * @internal
+ */
+function omitMetadataToWithMetadata(omitMetadata) {
+    return omitMetadata === undefined ? true : !omitMetadata;
+}
+
+exports.Alchemy = Alchemy;
+exports.AlchemyProvider = AlchemyProvider;
+exports.AlchemyWebSocketProvider = AlchemyWebSocketProvider;
+exports.checkNftOwnership = checkNftOwnership;
+exports.findContractDeployer = findContractDeployer;
+exports.fromHex = fromHex;
+exports.getAssetTransfers = getAssetTransfers;
+exports.getNftContractMetadata = getNftContractMetadata;
+exports.getNftFloorPrice = getNftFloorPrice;
+exports.getNftMetadata = getNftMetadata;
+exports.getNftsForCollection = getNftsForCollection;
+exports.getNftsForCollectionIterator = getNftsForCollectionIterator;
+exports.getNftsForOwner = getNftsForOwner;
+exports.getNftsForOwnerIterator = getNftsForOwnerIterator;
+exports.getOwnersForCollection = getOwnersForCollection;
+exports.getOwnersForNft = getOwnersForNft;
+exports.getSpamNftContracts = getSpamNftContracts;
+exports.getTokenBalances = getTokenBalances;
+exports.getTokenMetadata = getTokenMetadata;
+exports.getTransactionReceipts = getTransactionReceipts;
+exports.initializeAlchemy = initializeAlchemy;
+exports.isHex = isHex;
+exports.isSpamNftContract = isSpamNftContract;
+exports.refreshNftMetadata = refreshNftMetadata;
+exports.setLogLevel = setLogLevel;
+exports.toHex = toHex;
+
+
+}).call(this)}).call(this,require('_process'))
+},{"@ethersproject/bignumber":185,"@ethersproject/providers":219,"_process":169,"axios":251,"sturdy-websocket":319,"websocket":320}],173:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"dup":18}],174:[function(require,module,exports){
+arguments[4][19][0].apply(exports,arguments)
+},{"./_version":173,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":19}],175:[function(require,module,exports){
+arguments[4][20][0].apply(exports,arguments)
+},{"dup":20}],176:[function(require,module,exports){
+arguments[4][21][0].apply(exports,arguments)
+},{"./_version":175,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":21}],177:[function(require,module,exports){
+arguments[4][22][0].apply(exports,arguments)
+},{"dup":22}],178:[function(require,module,exports){
+arguments[4][23][0].apply(exports,arguments)
+},{"./_version":177,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/keccak256":202,"@ethersproject/logger":204,"@ethersproject/rlp":233,"dup":23}],179:[function(require,module,exports){
+arguments[4][24][0].apply(exports,arguments)
+},{"@ethersproject/bytes":187,"dup":24}],180:[function(require,module,exports){
+arguments[4][25][0].apply(exports,arguments)
+},{"./base64":179,"dup":25}],181:[function(require,module,exports){
+arguments[4][26][0].apply(exports,arguments)
+},{"@ethersproject/bytes":187,"@ethersproject/properties":208,"dup":26}],182:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"dup":27}],183:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./_version":182,"@ethersproject/bytes":187,"@ethersproject/logger":204,"bn.js":282,"dup":28}],184:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"./_version":182,"./bignumber":183,"@ethersproject/bytes":187,"@ethersproject/logger":204,"dup":29}],185:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./bignumber":183,"./fixednumber":184,"dup":30}],186:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"dup":31}],187:[function(require,module,exports){
+arguments[4][32][0].apply(exports,arguments)
+},{"./_version":186,"@ethersproject/logger":204,"dup":32}],188:[function(require,module,exports){
+arguments[4][33][0].apply(exports,arguments)
+},{"dup":33}],189:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"@ethersproject/bignumber":185,"dup":34}],190:[function(require,module,exports){
+arguments[4][35][0].apply(exports,arguments)
+},{"dup":35}],191:[function(require,module,exports){
+arguments[4][36][0].apply(exports,arguments)
+},{"./addresses":188,"./bignumbers":189,"./hashes":190,"./strings":192,"dup":36}],192:[function(require,module,exports){
+arguments[4][37][0].apply(exports,arguments)
+},{"dup":37}],193:[function(require,module,exports){
+arguments[4][40][0].apply(exports,arguments)
+},{"dup":40}],194:[function(require,module,exports){
+arguments[4][41][0].apply(exports,arguments)
+},{"dup":41}],195:[function(require,module,exports){
+arguments[4][42][0].apply(exports,arguments)
+},{"./decoder.js":194,"@ethersproject/base64":180,"dup":42}],196:[function(require,module,exports){
+arguments[4][43][0].apply(exports,arguments)
+},{"./decoder.js":194,"./include.js":195,"@ethersproject/strings":244,"dup":43}],197:[function(require,module,exports){
+arguments[4][44][0].apply(exports,arguments)
+},{"@ethersproject/keccak256":202,"@ethersproject/strings":244,"dup":44}],198:[function(require,module,exports){
+arguments[4][45][0].apply(exports,arguments)
+},{"./id":197,"./message":199,"./namehash":200,"./typed-data":201,"dup":45}],199:[function(require,module,exports){
+arguments[4][46][0].apply(exports,arguments)
+},{"@ethersproject/bytes":187,"@ethersproject/keccak256":202,"@ethersproject/strings":244,"dup":46}],200:[function(require,module,exports){
+arguments[4][47][0].apply(exports,arguments)
+},{"./_version":193,"./ens-normalize/lib":196,"@ethersproject/bytes":187,"@ethersproject/keccak256":202,"@ethersproject/logger":204,"@ethersproject/strings":244,"dup":47}],201:[function(require,module,exports){
+arguments[4][48][0].apply(exports,arguments)
+},{"./_version":193,"./id":197,"@ethersproject/address":178,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/keccak256":202,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":48}],202:[function(require,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"@ethersproject/bytes":187,"dup":57,"js-sha3":316}],203:[function(require,module,exports){
+arguments[4][58][0].apply(exports,arguments)
+},{"dup":58}],204:[function(require,module,exports){
+arguments[4][59][0].apply(exports,arguments)
+},{"./_version":203,"dup":59}],205:[function(require,module,exports){
+arguments[4][60][0].apply(exports,arguments)
+},{"dup":60}],206:[function(require,module,exports){
+arguments[4][61][0].apply(exports,arguments)
+},{"./_version":205,"@ethersproject/logger":204,"dup":61}],207:[function(require,module,exports){
+arguments[4][64][0].apply(exports,arguments)
+},{"dup":64}],208:[function(require,module,exports){
+arguments[4][65][0].apply(exports,arguments)
+},{"./_version":207,"@ethersproject/logger":204,"dup":65}],209:[function(require,module,exports){
+arguments[4][66][0].apply(exports,arguments)
+},{"dup":66}],210:[function(require,module,exports){
+arguments[4][67][0].apply(exports,arguments)
+},{"./_version":209,"./formatter":218,"./url-json-rpc-provider":225,"./websocket-provider":227,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":67}],211:[function(require,module,exports){
+arguments[4][68][0].apply(exports,arguments)
+},{"./_version":209,"./formatter":218,"./url-json-rpc-provider":225,"@ethersproject/logger":204,"dup":68}],212:[function(require,module,exports){
+arguments[4][69][0].apply(exports,arguments)
+},{"./_version":209,"./formatter":218,"@ethersproject/abstract-provider":174,"@ethersproject/base64":180,"@ethersproject/basex":181,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/constants":191,"@ethersproject/hash":198,"@ethersproject/logger":204,"@ethersproject/networks":206,"@ethersproject/properties":208,"@ethersproject/sha2":236,"@ethersproject/strings":244,"@ethersproject/web":250,"bech32":281,"dup":69}],213:[function(require,module,exports){
+arguments[4][70][0].apply(exports,arguments)
+},{"dup":70}],214:[function(require,module,exports){
+arguments[4][71][0].apply(exports,arguments)
+},{"./_version":209,"@ethersproject/logger":204,"dup":71}],215:[function(require,module,exports){
+arguments[4][72][0].apply(exports,arguments)
+},{"./_version":209,"./url-json-rpc-provider":225,"@ethersproject/logger":204,"dup":72}],216:[function(require,module,exports){
+arguments[4][73][0].apply(exports,arguments)
+},{"./_version":209,"./base-provider":212,"./formatter":218,"@ethersproject/bytes":187,"@ethersproject/logger":204,"@ethersproject/properties":208,"@ethersproject/transactions":247,"@ethersproject/web":250,"dup":73}],217:[function(require,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"./_version":209,"./base-provider":212,"./formatter":218,"@ethersproject/abstract-provider":174,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/logger":204,"@ethersproject/properties":208,"@ethersproject/random":230,"@ethersproject/web":250,"dup":74}],218:[function(require,module,exports){
+arguments[4][75][0].apply(exports,arguments)
+},{"./_version":209,"@ethersproject/address":178,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/constants":191,"@ethersproject/logger":204,"@ethersproject/properties":208,"@ethersproject/transactions":247,"dup":75}],219:[function(require,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"./_version":209,"./alchemy-provider":210,"./ankr-provider":211,"./base-provider":212,"./cloudflare-provider":215,"./etherscan-provider":216,"./fallback-provider":217,"./formatter":218,"./infura-provider":220,"./ipc-provider":213,"./json-rpc-batch-provider":221,"./json-rpc-provider":222,"./nodesmith-provider":223,"./pocket-provider":224,"./url-json-rpc-provider":225,"./web3-provider":226,"./websocket-provider":227,"@ethersproject/abstract-provider":174,"@ethersproject/logger":204,"@ethersproject/networks":206,"dup":76}],220:[function(require,module,exports){
+arguments[4][77][0].apply(exports,arguments)
+},{"./_version":209,"./formatter":218,"./url-json-rpc-provider":225,"./websocket-provider":227,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":77}],221:[function(require,module,exports){
+arguments[4][78][0].apply(exports,arguments)
+},{"./json-rpc-provider":222,"@ethersproject/properties":208,"@ethersproject/web":250,"dup":78}],222:[function(require,module,exports){
+arguments[4][79][0].apply(exports,arguments)
+},{"./_version":209,"./base-provider":212,"@ethersproject/abstract-signer":176,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/hash":198,"@ethersproject/logger":204,"@ethersproject/properties":208,"@ethersproject/strings":244,"@ethersproject/transactions":247,"@ethersproject/web":250,"dup":79}],223:[function(require,module,exports){
+arguments[4][80][0].apply(exports,arguments)
+},{"./_version":209,"./url-json-rpc-provider":225,"@ethersproject/logger":204,"dup":80}],224:[function(require,module,exports){
+arguments[4][81][0].apply(exports,arguments)
+},{"./_version":209,"./url-json-rpc-provider":225,"@ethersproject/logger":204,"dup":81}],225:[function(require,module,exports){
+arguments[4][82][0].apply(exports,arguments)
+},{"./_version":209,"./json-rpc-provider":222,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":82}],226:[function(require,module,exports){
+arguments[4][83][0].apply(exports,arguments)
+},{"./_version":209,"./json-rpc-provider":222,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":83}],227:[function(require,module,exports){
+arguments[4][84][0].apply(exports,arguments)
+},{"./_version":209,"./json-rpc-provider":222,"./ws":214,"@ethersproject/bignumber":185,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":84}],228:[function(require,module,exports){
+arguments[4][85][0].apply(exports,arguments)
+},{"dup":85}],229:[function(require,module,exports){
+arguments[4][86][0].apply(exports,arguments)
+},{"./_version":228,"@ethersproject/bytes":187,"@ethersproject/logger":204,"dup":86}],230:[function(require,module,exports){
+arguments[4][87][0].apply(exports,arguments)
+},{"./random":229,"./shuffle":231,"dup":87}],231:[function(require,module,exports){
+arguments[4][88][0].apply(exports,arguments)
+},{"dup":88}],232:[function(require,module,exports){
+arguments[4][89][0].apply(exports,arguments)
+},{"dup":89}],233:[function(require,module,exports){
+arguments[4][90][0].apply(exports,arguments)
+},{"./_version":232,"@ethersproject/bytes":187,"@ethersproject/logger":204,"dup":90}],234:[function(require,module,exports){
+arguments[4][91][0].apply(exports,arguments)
+},{"dup":91}],235:[function(require,module,exports){
+arguments[4][92][0].apply(exports,arguments)
+},{"./_version":234,"./types":237,"@ethersproject/bytes":187,"@ethersproject/logger":204,"dup":92,"hash.js":302}],236:[function(require,module,exports){
+arguments[4][93][0].apply(exports,arguments)
+},{"./sha2":235,"./types":237,"dup":93}],237:[function(require,module,exports){
+arguments[4][94][0].apply(exports,arguments)
+},{"dup":94}],238:[function(require,module,exports){
+arguments[4][95][0].apply(exports,arguments)
+},{"dup":95}],239:[function(require,module,exports){
+arguments[4][96][0].apply(exports,arguments)
+},{"dup":96,"elliptic":284}],240:[function(require,module,exports){
+arguments[4][97][0].apply(exports,arguments)
+},{"./_version":238,"./elliptic":239,"@ethersproject/bytes":187,"@ethersproject/logger":204,"@ethersproject/properties":208,"dup":97}],241:[function(require,module,exports){
+arguments[4][100][0].apply(exports,arguments)
+},{"dup":100}],242:[function(require,module,exports){
+arguments[4][101][0].apply(exports,arguments)
+},{"./utf8":245,"@ethersproject/bytes":187,"@ethersproject/constants":191,"dup":101}],243:[function(require,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"./utf8":245,"dup":102}],244:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./bytes32":242,"./idna":243,"./utf8":245,"dup":103}],245:[function(require,module,exports){
+arguments[4][104][0].apply(exports,arguments)
+},{"./_version":241,"@ethersproject/bytes":187,"@ethersproject/logger":204,"dup":104}],246:[function(require,module,exports){
+arguments[4][105][0].apply(exports,arguments)
+},{"dup":105}],247:[function(require,module,exports){
+arguments[4][106][0].apply(exports,arguments)
+},{"./_version":246,"@ethersproject/address":178,"@ethersproject/bignumber":185,"@ethersproject/bytes":187,"@ethersproject/constants":191,"@ethersproject/keccak256":202,"@ethersproject/logger":204,"@ethersproject/properties":208,"@ethersproject/rlp":233,"@ethersproject/signing-key":240,"dup":106}],248:[function(require,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"dup":111}],249:[function(require,module,exports){
+arguments[4][112][0].apply(exports,arguments)
+},{"@ethersproject/bytes":187,"dup":112}],250:[function(require,module,exports){
+arguments[4][113][0].apply(exports,arguments)
+},{"./_version":248,"./geturl":249,"@ethersproject/base64":180,"@ethersproject/bytes":187,"@ethersproject/logger":204,"@ethersproject/properties":208,"@ethersproject/strings":244,"dup":113}],251:[function(require,module,exports){
+module.exports = require('./lib/axios');
+},{"./lib/axios":253}],252:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+var settle = require('./../core/settle');
+var cookies = require('./../helpers/cookies');
+var buildURL = require('./../helpers/buildURL');
+var buildFullPath = require('../core/buildFullPath');
+var parseHeaders = require('./../helpers/parseHeaders');
+var isURLSameOrigin = require('./../helpers/isURLSameOrigin');
+var createError = require('../core/createError');
+var transitionalDefaults = require('../defaults/transitional');
+var Cancel = require('../cancel/Cancel');
+
+module.exports = function xhrAdapter(config) {
+  return new Promise(function dispatchXhrRequest(resolve, reject) {
+    var requestData = config.data;
+    var requestHeaders = config.headers;
+    var responseType = config.responseType;
+    var onCanceled;
+    function done() {
+      if (config.cancelToken) {
+        config.cancelToken.unsubscribe(onCanceled);
+      }
+
+      if (config.signal) {
+        config.signal.removeEventListener('abort', onCanceled);
+      }
+    }
+
+    if (utils.isFormData(requestData)) {
+      delete requestHeaders['Content-Type']; // Let the browser set it
+    }
+
+    var request = new XMLHttpRequest();
+
+    // HTTP basic authentication
+    if (config.auth) {
+      var username = config.auth.username || '';
+      var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
+      requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
+    }
+
+    var fullPath = buildFullPath(config.baseURL, config.url);
+    request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
+
+    // Set the request timeout in MS
+    request.timeout = config.timeout;
+
+    function onloadend() {
+      if (!request) {
+        return;
+      }
+      // Prepare the response
+      var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
+      var responseData = !responseType || responseType === 'text' ||  responseType === 'json' ?
+        request.responseText : request.response;
+      var response = {
+        data: responseData,
+        status: request.status,
+        statusText: request.statusText,
+        headers: responseHeaders,
+        config: config,
+        request: request
+      };
+
+      settle(function _resolve(value) {
+        resolve(value);
+        done();
+      }, function _reject(err) {
+        reject(err);
+        done();
+      }, response);
+
+      // Clean up request
+      request = null;
+    }
+
+    if ('onloadend' in request) {
+      // Use onloadend if available
+      request.onloadend = onloadend;
+    } else {
+      // Listen for ready state to emulate onloadend
+      request.onreadystatechange = function handleLoad() {
+        if (!request || request.readyState !== 4) {
+          return;
+        }
+
+        // The request errored out and we didn't get a response, this will be
+        // handled by onerror instead
+        // With one exception: request that using file: protocol, most browsers
+        // will return status as 0 even though it's a successful request
+        if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+          return;
+        }
+        // readystate handler is calling before onerror or ontimeout handlers,
+        // so we should call onloadend on the next 'tick'
+        setTimeout(onloadend);
+      };
+    }
+
+    // Handle browser request cancellation (as opposed to a manual cancellation)
+    request.onabort = function handleAbort() {
+      if (!request) {
+        return;
+      }
+
+      reject(createError('Request aborted', config, 'ECONNABORTED', request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle low level network errors
+    request.onerror = function handleError() {
+      // Real errors are hidden from us by the browser
+      // onerror should only fire if it's a network error
+      reject(createError('Network Error', config, null, request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle timeout
+    request.ontimeout = function handleTimeout() {
+      var timeoutErrorMessage = config.timeout ? 'timeout of ' + config.timeout + 'ms exceeded' : 'timeout exceeded';
+      var transitional = config.transitional || transitionalDefaults;
+      if (config.timeoutErrorMessage) {
+        timeoutErrorMessage = config.timeoutErrorMessage;
+      }
+      reject(createError(
+        timeoutErrorMessage,
+        config,
+        transitional.clarifyTimeoutError ? 'ETIMEDOUT' : 'ECONNABORTED',
+        request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Add xsrf header
+    // This is only done if running in a standard browser environment.
+    // Specifically not if we're in a web worker, or react-native.
+    if (utils.isStandardBrowserEnv()) {
+      // Add xsrf header
+      var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
+        cookies.read(config.xsrfCookieName) :
+        undefined;
+
+      if (xsrfValue) {
+        requestHeaders[config.xsrfHeaderName] = xsrfValue;
+      }
+    }
+
+    // Add headers to the request
+    if ('setRequestHeader' in request) {
+      utils.forEach(requestHeaders, function setRequestHeader(val, key) {
+        if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+          // Remove Content-Type if data is undefined
+          delete requestHeaders[key];
+        } else {
+          // Otherwise add header to the request
+          request.setRequestHeader(key, val);
+        }
+      });
+    }
+
+    // Add withCredentials to request if needed
+    if (!utils.isUndefined(config.withCredentials)) {
+      request.withCredentials = !!config.withCredentials;
+    }
+
+    // Add responseType to request if needed
+    if (responseType && responseType !== 'json') {
+      request.responseType = config.responseType;
+    }
+
+    // Handle progress if needed
+    if (typeof config.onDownloadProgress === 'function') {
+      request.addEventListener('progress', config.onDownloadProgress);
+    }
+
+    // Not all browsers support upload events
+    if (typeof config.onUploadProgress === 'function' && request.upload) {
+      request.upload.addEventListener('progress', config.onUploadProgress);
+    }
+
+    if (config.cancelToken || config.signal) {
+      // Handle cancellation
+      // eslint-disable-next-line func-names
+      onCanceled = function(cancel) {
+        if (!request) {
+          return;
+        }
+        reject(!cancel || (cancel && cancel.type) ? new Cancel('canceled') : cancel);
+        request.abort();
+        request = null;
+      };
+
+      config.cancelToken && config.cancelToken.subscribe(onCanceled);
+      if (config.signal) {
+        config.signal.aborted ? onCanceled() : config.signal.addEventListener('abort', onCanceled);
+      }
+    }
+
+    if (!requestData) {
+      requestData = null;
+    }
+
+    // Send the request
+    request.send(requestData);
+  });
+};
+
+},{"../cancel/Cancel":254,"../core/buildFullPath":259,"../core/createError":260,"../defaults/transitional":267,"./../core/settle":264,"./../helpers/buildURL":270,"./../helpers/cookies":272,"./../helpers/isURLSameOrigin":275,"./../helpers/parseHeaders":277,"./../utils":280}],253:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils');
+var bind = require('./helpers/bind');
+var Axios = require('./core/Axios');
+var mergeConfig = require('./core/mergeConfig');
+var defaults = require('./defaults');
+
+/**
+ * Create an instance of Axios
+ *
+ * @param {Object} defaultConfig The default config for the instance
+ * @return {Axios} A new instance of Axios
+ */
+function createInstance(defaultConfig) {
+  var context = new Axios(defaultConfig);
+  var instance = bind(Axios.prototype.request, context);
+
+  // Copy axios.prototype to instance
+  utils.extend(instance, Axios.prototype, context);
+
+  // Copy context to instance
+  utils.extend(instance, context);
+
+  // Factory for creating new instances
+  instance.create = function create(instanceConfig) {
+    return createInstance(mergeConfig(defaultConfig, instanceConfig));
+  };
+
+  return instance;
+}
+
+// Create the default instance to be exported
+var axios = createInstance(defaults);
+
+// Expose Axios class to allow class inheritance
+axios.Axios = Axios;
+
+// Expose Cancel & CancelToken
+axios.Cancel = require('./cancel/Cancel');
+axios.CancelToken = require('./cancel/CancelToken');
+axios.isCancel = require('./cancel/isCancel');
+axios.VERSION = require('./env/data').version;
+
+// Expose all/spread
+axios.all = function all(promises) {
+  return Promise.all(promises);
+};
+axios.spread = require('./helpers/spread');
+
+// Expose isAxiosError
+axios.isAxiosError = require('./helpers/isAxiosError');
+
+module.exports = axios;
+
+// Allow use of default import syntax in TypeScript
+module.exports.default = axios;
+
+},{"./cancel/Cancel":254,"./cancel/CancelToken":255,"./cancel/isCancel":256,"./core/Axios":257,"./core/mergeConfig":263,"./defaults":266,"./env/data":268,"./helpers/bind":269,"./helpers/isAxiosError":274,"./helpers/spread":278,"./utils":280}],254:[function(require,module,exports){
+'use strict';
+
+/**
+ * A `Cancel` is an object that is thrown when an operation is canceled.
+ *
+ * @class
+ * @param {string=} message The message.
+ */
+function Cancel(message) {
+  this.message = message;
+}
+
+Cancel.prototype.toString = function toString() {
+  return 'Cancel' + (this.message ? ': ' + this.message : '');
+};
+
+Cancel.prototype.__CANCEL__ = true;
+
+module.exports = Cancel;
+
+},{}],255:[function(require,module,exports){
+'use strict';
+
+var Cancel = require('./Cancel');
+
+/**
+ * A `CancelToken` is an object that can be used to request cancellation of an operation.
+ *
+ * @class
+ * @param {Function} executor The executor function.
+ */
+function CancelToken(executor) {
+  if (typeof executor !== 'function') {
+    throw new TypeError('executor must be a function.');
+  }
+
+  var resolvePromise;
+
+  this.promise = new Promise(function promiseExecutor(resolve) {
+    resolvePromise = resolve;
+  });
+
+  var token = this;
+
+  // eslint-disable-next-line func-names
+  this.promise.then(function(cancel) {
+    if (!token._listeners) return;
+
+    var i;
+    var l = token._listeners.length;
+
+    for (i = 0; i < l; i++) {
+      token._listeners[i](cancel);
+    }
+    token._listeners = null;
+  });
+
+  // eslint-disable-next-line func-names
+  this.promise.then = function(onfulfilled) {
+    var _resolve;
+    // eslint-disable-next-line func-names
+    var promise = new Promise(function(resolve) {
+      token.subscribe(resolve);
+      _resolve = resolve;
+    }).then(onfulfilled);
+
+    promise.cancel = function reject() {
+      token.unsubscribe(_resolve);
+    };
+
+    return promise;
+  };
+
+  executor(function cancel(message) {
+    if (token.reason) {
+      // Cancellation has already been requested
+      return;
+    }
+
+    token.reason = new Cancel(message);
+    resolvePromise(token.reason);
+  });
+}
+
+/**
+ * Throws a `Cancel` if cancellation has been requested.
+ */
+CancelToken.prototype.throwIfRequested = function throwIfRequested() {
+  if (this.reason) {
+    throw this.reason;
+  }
+};
+
+/**
+ * Subscribe to the cancel signal
+ */
+
+CancelToken.prototype.subscribe = function subscribe(listener) {
+  if (this.reason) {
+    listener(this.reason);
+    return;
+  }
+
+  if (this._listeners) {
+    this._listeners.push(listener);
+  } else {
+    this._listeners = [listener];
+  }
+};
+
+/**
+ * Unsubscribe from the cancel signal
+ */
+
+CancelToken.prototype.unsubscribe = function unsubscribe(listener) {
+  if (!this._listeners) {
+    return;
+  }
+  var index = this._listeners.indexOf(listener);
+  if (index !== -1) {
+    this._listeners.splice(index, 1);
+  }
+};
+
+/**
+ * Returns an object that contains a new `CancelToken` and a function that, when called,
+ * cancels the `CancelToken`.
+ */
+CancelToken.source = function source() {
+  var cancel;
+  var token = new CancelToken(function executor(c) {
+    cancel = c;
+  });
+  return {
+    token: token,
+    cancel: cancel
+  };
+};
+
+module.exports = CancelToken;
+
+},{"./Cancel":254}],256:[function(require,module,exports){
+'use strict';
+
+module.exports = function isCancel(value) {
+  return !!(value && value.__CANCEL__);
+};
+
+},{}],257:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+var buildURL = require('../helpers/buildURL');
+var InterceptorManager = require('./InterceptorManager');
+var dispatchRequest = require('./dispatchRequest');
+var mergeConfig = require('./mergeConfig');
+var validator = require('../helpers/validator');
+
+var validators = validator.validators;
+/**
+ * Create a new instance of Axios
+ *
+ * @param {Object} instanceConfig The default config for the instance
+ */
+function Axios(instanceConfig) {
+  this.defaults = instanceConfig;
+  this.interceptors = {
+    request: new InterceptorManager(),
+    response: new InterceptorManager()
+  };
+}
+
+/**
+ * Dispatch a request
+ *
+ * @param {Object} config The config specific for this request (merged with this.defaults)
+ */
+Axios.prototype.request = function request(configOrUrl, config) {
+  /*eslint no-param-reassign:0*/
+  // Allow for axios('example/url'[, config]) a la fetch API
+  if (typeof configOrUrl === 'string') {
+    config = config || {};
+    config.url = configOrUrl;
+  } else {
+    config = configOrUrl || {};
+  }
+
+  config = mergeConfig(this.defaults, config);
+
+  // Set config.method
+  if (config.method) {
+    config.method = config.method.toLowerCase();
+  } else if (this.defaults.method) {
+    config.method = this.defaults.method.toLowerCase();
+  } else {
+    config.method = 'get';
+  }
+
+  var transitional = config.transitional;
+
+  if (transitional !== undefined) {
+    validator.assertOptions(transitional, {
+      silentJSONParsing: validators.transitional(validators.boolean),
+      forcedJSONParsing: validators.transitional(validators.boolean),
+      clarifyTimeoutError: validators.transitional(validators.boolean)
+    }, false);
+  }
+
+  // filter out skipped interceptors
+  var requestInterceptorChain = [];
+  var synchronousRequestInterceptors = true;
+  this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
+    if (typeof interceptor.runWhen === 'function' && interceptor.runWhen(config) === false) {
+      return;
+    }
+
+    synchronousRequestInterceptors = synchronousRequestInterceptors && interceptor.synchronous;
+
+    requestInterceptorChain.unshift(interceptor.fulfilled, interceptor.rejected);
+  });
+
+  var responseInterceptorChain = [];
+  this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
+    responseInterceptorChain.push(interceptor.fulfilled, interceptor.rejected);
+  });
+
+  var promise;
+
+  if (!synchronousRequestInterceptors) {
+    var chain = [dispatchRequest, undefined];
+
+    Array.prototype.unshift.apply(chain, requestInterceptorChain);
+    chain = chain.concat(responseInterceptorChain);
+
+    promise = Promise.resolve(config);
+    while (chain.length) {
+      promise = promise.then(chain.shift(), chain.shift());
+    }
+
+    return promise;
+  }
+
+
+  var newConfig = config;
+  while (requestInterceptorChain.length) {
+    var onFulfilled = requestInterceptorChain.shift();
+    var onRejected = requestInterceptorChain.shift();
+    try {
+      newConfig = onFulfilled(newConfig);
+    } catch (error) {
+      onRejected(error);
+      break;
+    }
+  }
+
+  try {
+    promise = dispatchRequest(newConfig);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+
+  while (responseInterceptorChain.length) {
+    promise = promise.then(responseInterceptorChain.shift(), responseInterceptorChain.shift());
+  }
+
+  return promise;
+};
+
+Axios.prototype.getUri = function getUri(config) {
+  config = mergeConfig(this.defaults, config);
+  return buildURL(config.url, config.params, config.paramsSerializer).replace(/^\?/, '');
+};
+
+// Provide aliases for supported request methods
+utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
+  /*eslint func-names:0*/
+  Axios.prototype[method] = function(url, config) {
+    return this.request(mergeConfig(config || {}, {
+      method: method,
+      url: url,
+      data: (config || {}).data
+    }));
+  };
+});
+
+utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+  /*eslint func-names:0*/
+  Axios.prototype[method] = function(url, data, config) {
+    return this.request(mergeConfig(config || {}, {
+      method: method,
+      url: url,
+      data: data
+    }));
+  };
+});
+
+module.exports = Axios;
+
+},{"../helpers/buildURL":270,"../helpers/validator":279,"./../utils":280,"./InterceptorManager":258,"./dispatchRequest":261,"./mergeConfig":263}],258:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+
+function InterceptorManager() {
+  this.handlers = [];
+}
+
+/**
+ * Add a new interceptor to the stack
+ *
+ * @param {Function} fulfilled The function to handle `then` for a `Promise`
+ * @param {Function} rejected The function to handle `reject` for a `Promise`
+ *
+ * @return {Number} An ID used to remove interceptor later
+ */
+InterceptorManager.prototype.use = function use(fulfilled, rejected, options) {
+  this.handlers.push({
+    fulfilled: fulfilled,
+    rejected: rejected,
+    synchronous: options ? options.synchronous : false,
+    runWhen: options ? options.runWhen : null
+  });
+  return this.handlers.length - 1;
+};
+
+/**
+ * Remove an interceptor from the stack
+ *
+ * @param {Number} id The ID that was returned by `use`
+ */
+InterceptorManager.prototype.eject = function eject(id) {
+  if (this.handlers[id]) {
+    this.handlers[id] = null;
+  }
+};
+
+/**
+ * Iterate over all the registered interceptors
+ *
+ * This method is particularly useful for skipping over any
+ * interceptors that may have become `null` calling `eject`.
+ *
+ * @param {Function} fn The function to call for each interceptor
+ */
+InterceptorManager.prototype.forEach = function forEach(fn) {
+  utils.forEach(this.handlers, function forEachHandler(h) {
+    if (h !== null) {
+      fn(h);
+    }
+  });
+};
+
+module.exports = InterceptorManager;
+
+},{"./../utils":280}],259:[function(require,module,exports){
+'use strict';
+
+var isAbsoluteURL = require('../helpers/isAbsoluteURL');
+var combineURLs = require('../helpers/combineURLs');
+
+/**
+ * Creates a new URL by combining the baseURL with the requestedURL,
+ * only when the requestedURL is not already an absolute URL.
+ * If the requestURL is absolute, this function returns the requestedURL untouched.
+ *
+ * @param {string} baseURL The base URL
+ * @param {string} requestedURL Absolute or relative URL to combine
+ * @returns {string} The combined full path
+ */
+module.exports = function buildFullPath(baseURL, requestedURL) {
+  if (baseURL && !isAbsoluteURL(requestedURL)) {
+    return combineURLs(baseURL, requestedURL);
+  }
+  return requestedURL;
+};
+
+},{"../helpers/combineURLs":271,"../helpers/isAbsoluteURL":273}],260:[function(require,module,exports){
+'use strict';
+
+var enhanceError = require('./enhanceError');
+
+/**
+ * Create an Error with the specified message, config, error code, request and response.
+ *
+ * @param {string} message The error message.
+ * @param {Object} config The config.
+ * @param {string} [code] The error code (for example, 'ECONNABORTED').
+ * @param {Object} [request] The request.
+ * @param {Object} [response] The response.
+ * @returns {Error} The created error.
+ */
+module.exports = function createError(message, config, code, request, response) {
+  var error = new Error(message);
+  return enhanceError(error, config, code, request, response);
+};
+
+},{"./enhanceError":262}],261:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+var transformData = require('./transformData');
+var isCancel = require('../cancel/isCancel');
+var defaults = require('../defaults');
+var Cancel = require('../cancel/Cancel');
+
+/**
+ * Throws a `Cancel` if cancellation has been requested.
+ */
+function throwIfCancellationRequested(config) {
+  if (config.cancelToken) {
+    config.cancelToken.throwIfRequested();
+  }
+
+  if (config.signal && config.signal.aborted) {
+    throw new Cancel('canceled');
+  }
+}
+
+/**
+ * Dispatch a request to the server using the configured adapter.
+ *
+ * @param {object} config The config that is to be used for the request
+ * @returns {Promise} The Promise to be fulfilled
+ */
+module.exports = function dispatchRequest(config) {
+  throwIfCancellationRequested(config);
+
+  // Ensure headers exist
+  config.headers = config.headers || {};
+
+  // Transform request data
+  config.data = transformData.call(
+    config,
+    config.data,
+    config.headers,
+    config.transformRequest
+  );
+
+  // Flatten headers
+  config.headers = utils.merge(
+    config.headers.common || {},
+    config.headers[config.method] || {},
+    config.headers
+  );
+
+  utils.forEach(
+    ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
+    function cleanHeaderConfig(method) {
+      delete config.headers[method];
+    }
+  );
+
+  var adapter = config.adapter || defaults.adapter;
+
+  return adapter(config).then(function onAdapterResolution(response) {
+    throwIfCancellationRequested(config);
+
+    // Transform response data
+    response.data = transformData.call(
+      config,
+      response.data,
+      response.headers,
+      config.transformResponse
+    );
+
+    return response;
+  }, function onAdapterRejection(reason) {
+    if (!isCancel(reason)) {
+      throwIfCancellationRequested(config);
+
+      // Transform response data
+      if (reason && reason.response) {
+        reason.response.data = transformData.call(
+          config,
+          reason.response.data,
+          reason.response.headers,
+          config.transformResponse
+        );
+      }
+    }
+
+    return Promise.reject(reason);
+  });
+};
+
+},{"../cancel/Cancel":254,"../cancel/isCancel":256,"../defaults":266,"./../utils":280,"./transformData":265}],262:[function(require,module,exports){
+'use strict';
+
+/**
+ * Update an Error with the specified config, error code, and response.
+ *
+ * @param {Error} error The error to update.
+ * @param {Object} config The config.
+ * @param {string} [code] The error code (for example, 'ECONNABORTED').
+ * @param {Object} [request] The request.
+ * @param {Object} [response] The response.
+ * @returns {Error} The error.
+ */
+module.exports = function enhanceError(error, config, code, request, response) {
+  error.config = config;
+  if (code) {
+    error.code = code;
+  }
+
+  error.request = request;
+  error.response = response;
+  error.isAxiosError = true;
+
+  error.toJSON = function toJSON() {
+    return {
+      // Standard
+      message: this.message,
+      name: this.name,
+      // Microsoft
+      description: this.description,
+      number: this.number,
+      // Mozilla
+      fileName: this.fileName,
+      lineNumber: this.lineNumber,
+      columnNumber: this.columnNumber,
+      stack: this.stack,
+      // Axios
+      config: this.config,
+      code: this.code,
+      status: this.response && this.response.status ? this.response.status : null
+    };
+  };
+  return error;
+};
+
+},{}],263:[function(require,module,exports){
+'use strict';
+
+var utils = require('../utils');
+
+/**
+ * Config-specific merge-function which creates a new config-object
+ * by merging two configuration objects together.
+ *
+ * @param {Object} config1
+ * @param {Object} config2
+ * @returns {Object} New object resulting from merging config2 to config1
+ */
+module.exports = function mergeConfig(config1, config2) {
+  // eslint-disable-next-line no-param-reassign
+  config2 = config2 || {};
+  var config = {};
+
+  function getMergedValue(target, source) {
+    if (utils.isPlainObject(target) && utils.isPlainObject(source)) {
+      return utils.merge(target, source);
+    } else if (utils.isPlainObject(source)) {
+      return utils.merge({}, source);
+    } else if (utils.isArray(source)) {
+      return source.slice();
+    }
+    return source;
+  }
+
+  // eslint-disable-next-line consistent-return
+  function mergeDeepProperties(prop) {
+    if (!utils.isUndefined(config2[prop])) {
+      return getMergedValue(config1[prop], config2[prop]);
+    } else if (!utils.isUndefined(config1[prop])) {
+      return getMergedValue(undefined, config1[prop]);
+    }
+  }
+
+  // eslint-disable-next-line consistent-return
+  function valueFromConfig2(prop) {
+    if (!utils.isUndefined(config2[prop])) {
+      return getMergedValue(undefined, config2[prop]);
+    }
+  }
+
+  // eslint-disable-next-line consistent-return
+  function defaultToConfig2(prop) {
+    if (!utils.isUndefined(config2[prop])) {
+      return getMergedValue(undefined, config2[prop]);
+    } else if (!utils.isUndefined(config1[prop])) {
+      return getMergedValue(undefined, config1[prop]);
+    }
+  }
+
+  // eslint-disable-next-line consistent-return
+  function mergeDirectKeys(prop) {
+    if (prop in config2) {
+      return getMergedValue(config1[prop], config2[prop]);
+    } else if (prop in config1) {
+      return getMergedValue(undefined, config1[prop]);
+    }
+  }
+
+  var mergeMap = {
+    'url': valueFromConfig2,
+    'method': valueFromConfig2,
+    'data': valueFromConfig2,
+    'baseURL': defaultToConfig2,
+    'transformRequest': defaultToConfig2,
+    'transformResponse': defaultToConfig2,
+    'paramsSerializer': defaultToConfig2,
+    'timeout': defaultToConfig2,
+    'timeoutMessage': defaultToConfig2,
+    'withCredentials': defaultToConfig2,
+    'adapter': defaultToConfig2,
+    'responseType': defaultToConfig2,
+    'xsrfCookieName': defaultToConfig2,
+    'xsrfHeaderName': defaultToConfig2,
+    'onUploadProgress': defaultToConfig2,
+    'onDownloadProgress': defaultToConfig2,
+    'decompress': defaultToConfig2,
+    'maxContentLength': defaultToConfig2,
+    'maxBodyLength': defaultToConfig2,
+    'transport': defaultToConfig2,
+    'httpAgent': defaultToConfig2,
+    'httpsAgent': defaultToConfig2,
+    'cancelToken': defaultToConfig2,
+    'socketPath': defaultToConfig2,
+    'responseEncoding': defaultToConfig2,
+    'validateStatus': mergeDirectKeys
+  };
+
+  utils.forEach(Object.keys(config1).concat(Object.keys(config2)), function computeConfigValue(prop) {
+    var merge = mergeMap[prop] || mergeDeepProperties;
+    var configValue = merge(prop);
+    (utils.isUndefined(configValue) && merge !== mergeDirectKeys) || (config[prop] = configValue);
+  });
+
+  return config;
+};
+
+},{"../utils":280}],264:[function(require,module,exports){
+'use strict';
+
+var createError = require('./createError');
+
+/**
+ * Resolve or reject a Promise based on response status.
+ *
+ * @param {Function} resolve A function that resolves the promise.
+ * @param {Function} reject A function that rejects the promise.
+ * @param {object} response The response.
+ */
+module.exports = function settle(resolve, reject, response) {
+  var validateStatus = response.config.validateStatus;
+  if (!response.status || !validateStatus || validateStatus(response.status)) {
+    resolve(response);
+  } else {
+    reject(createError(
+      'Request failed with status code ' + response.status,
+      response.config,
+      null,
+      response.request,
+      response
+    ));
+  }
+};
+
+},{"./createError":260}],265:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+var defaults = require('../defaults');
+
+/**
+ * Transform the data for a request or a response
+ *
+ * @param {Object|String} data The data to be transformed
+ * @param {Array} headers The headers for the request or response
+ * @param {Array|Function} fns A single function or Array of functions
+ * @returns {*} The resulting transformed data
+ */
+module.exports = function transformData(data, headers, fns) {
+  var context = this || defaults;
+  /*eslint no-param-reassign:0*/
+  utils.forEach(fns, function transform(fn) {
+    data = fn.call(context, data, headers);
+  });
+
+  return data;
+};
+
+},{"../defaults":266,"./../utils":280}],266:[function(require,module,exports){
+(function (process){(function (){
+'use strict';
+
+var utils = require('../utils');
+var normalizeHeaderName = require('../helpers/normalizeHeaderName');
+var enhanceError = require('../core/enhanceError');
+var transitionalDefaults = require('./transitional');
+
+var DEFAULT_CONTENT_TYPE = {
+  'Content-Type': 'application/x-www-form-urlencoded'
+};
+
+function setContentTypeIfUnset(headers, value) {
+  if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
+    headers['Content-Type'] = value;
+  }
+}
+
+function getDefaultAdapter() {
+  var adapter;
+  if (typeof XMLHttpRequest !== 'undefined') {
+    // For browsers use XHR adapter
+    adapter = require('../adapters/xhr');
+  } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
+    // For node use HTTP adapter
+    adapter = require('../adapters/http');
+  }
+  return adapter;
+}
+
+function stringifySafely(rawValue, parser, encoder) {
+  if (utils.isString(rawValue)) {
+    try {
+      (parser || JSON.parse)(rawValue);
+      return utils.trim(rawValue);
+    } catch (e) {
+      if (e.name !== 'SyntaxError') {
+        throw e;
+      }
+    }
+  }
+
+  return (encoder || JSON.stringify)(rawValue);
+}
+
+var defaults = {
+
+  transitional: transitionalDefaults,
+
+  adapter: getDefaultAdapter(),
+
+  transformRequest: [function transformRequest(data, headers) {
+    normalizeHeaderName(headers, 'Accept');
+    normalizeHeaderName(headers, 'Content-Type');
+
+    if (utils.isFormData(data) ||
+      utils.isArrayBuffer(data) ||
+      utils.isBuffer(data) ||
+      utils.isStream(data) ||
+      utils.isFile(data) ||
+      utils.isBlob(data)
+    ) {
+      return data;
+    }
+    if (utils.isArrayBufferView(data)) {
+      return data.buffer;
+    }
+    if (utils.isURLSearchParams(data)) {
+      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+      return data.toString();
+    }
+    if (utils.isObject(data) || (headers && headers['Content-Type'] === 'application/json')) {
+      setContentTypeIfUnset(headers, 'application/json');
+      return stringifySafely(data);
+    }
+    return data;
+  }],
+
+  transformResponse: [function transformResponse(data) {
+    var transitional = this.transitional || defaults.transitional;
+    var silentJSONParsing = transitional && transitional.silentJSONParsing;
+    var forcedJSONParsing = transitional && transitional.forcedJSONParsing;
+    var strictJSONParsing = !silentJSONParsing && this.responseType === 'json';
+
+    if (strictJSONParsing || (forcedJSONParsing && utils.isString(data) && data.length)) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        if (strictJSONParsing) {
+          if (e.name === 'SyntaxError') {
+            throw enhanceError(e, this, 'E_JSON_PARSE');
+          }
+          throw e;
+        }
+      }
+    }
+
+    return data;
+  }],
+
+  /**
+   * A timeout in milliseconds to abort a request. If set to 0 (default) a
+   * timeout is not created.
+   */
+  timeout: 0,
+
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+
+  maxContentLength: -1,
+  maxBodyLength: -1,
+
+  validateStatus: function validateStatus(status) {
+    return status >= 200 && status < 300;
+  },
+
+  headers: {
+    common: {
+      'Accept': 'application/json, text/plain, */*'
+    }
+  }
+};
+
+utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+  defaults.headers[method] = {};
+});
+
+utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
+});
+
+module.exports = defaults;
+
+}).call(this)}).call(this,require('_process'))
+},{"../adapters/http":252,"../adapters/xhr":252,"../core/enhanceError":262,"../helpers/normalizeHeaderName":276,"../utils":280,"./transitional":267,"_process":169}],267:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+  silentJSONParsing: true,
+  forcedJSONParsing: true,
+  clarifyTimeoutError: false
+};
+
+},{}],268:[function(require,module,exports){
+module.exports = {
+  "version": "0.26.1"
+};
+},{}],269:[function(require,module,exports){
+'use strict';
+
+module.exports = function bind(fn, thisArg) {
+  return function wrap() {
+    var args = new Array(arguments.length);
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i];
+    }
+    return fn.apply(thisArg, args);
+  };
+};
+
+},{}],270:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+
+function encode(val) {
+  return encodeURIComponent(val).
+    replace(/%3A/gi, ':').
+    replace(/%24/g, '$').
+    replace(/%2C/gi, ',').
+    replace(/%20/g, '+').
+    replace(/%5B/gi, '[').
+    replace(/%5D/gi, ']');
+}
+
+/**
+ * Build a URL by appending params to the end
+ *
+ * @param {string} url The base of the url (e.g., http://www.google.com)
+ * @param {object} [params] The params to be appended
+ * @returns {string} The formatted url
+ */
+module.exports = function buildURL(url, params, paramsSerializer) {
+  /*eslint no-param-reassign:0*/
+  if (!params) {
+    return url;
+  }
+
+  var serializedParams;
+  if (paramsSerializer) {
+    serializedParams = paramsSerializer(params);
+  } else if (utils.isURLSearchParams(params)) {
+    serializedParams = params.toString();
+  } else {
+    var parts = [];
+
+    utils.forEach(params, function serialize(val, key) {
+      if (val === null || typeof val === 'undefined') {
+        return;
+      }
+
+      if (utils.isArray(val)) {
+        key = key + '[]';
+      } else {
+        val = [val];
+      }
+
+      utils.forEach(val, function parseValue(v) {
+        if (utils.isDate(v)) {
+          v = v.toISOString();
+        } else if (utils.isObject(v)) {
+          v = JSON.stringify(v);
+        }
+        parts.push(encode(key) + '=' + encode(v));
+      });
+    });
+
+    serializedParams = parts.join('&');
+  }
+
+  if (serializedParams) {
+    var hashmarkIndex = url.indexOf('#');
+    if (hashmarkIndex !== -1) {
+      url = url.slice(0, hashmarkIndex);
+    }
+
+    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+  }
+
+  return url;
+};
+
+},{"./../utils":280}],271:[function(require,module,exports){
+'use strict';
+
+/**
+ * Creates a new URL by combining the specified URLs
+ *
+ * @param {string} baseURL The base URL
+ * @param {string} relativeURL The relative URL
+ * @returns {string} The combined URL
+ */
+module.exports = function combineURLs(baseURL, relativeURL) {
+  return relativeURL
+    ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
+    : baseURL;
+};
+
+},{}],272:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+
+module.exports = (
+  utils.isStandardBrowserEnv() ?
+
+  // Standard browser envs support document.cookie
+    (function standardBrowserEnv() {
+      return {
+        write: function write(name, value, expires, path, domain, secure) {
+          var cookie = [];
+          cookie.push(name + '=' + encodeURIComponent(value));
+
+          if (utils.isNumber(expires)) {
+            cookie.push('expires=' + new Date(expires).toGMTString());
+          }
+
+          if (utils.isString(path)) {
+            cookie.push('path=' + path);
+          }
+
+          if (utils.isString(domain)) {
+            cookie.push('domain=' + domain);
+          }
+
+          if (secure === true) {
+            cookie.push('secure');
+          }
+
+          document.cookie = cookie.join('; ');
+        },
+
+        read: function read(name) {
+          var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+          return (match ? decodeURIComponent(match[3]) : null);
+        },
+
+        remove: function remove(name) {
+          this.write(name, '', Date.now() - 86400000);
+        }
+      };
+    })() :
+
+  // Non standard browser env (web workers, react-native) lack needed support.
+    (function nonStandardBrowserEnv() {
+      return {
+        write: function write() {},
+        read: function read() { return null; },
+        remove: function remove() {}
+      };
+    })()
+);
+
+},{"./../utils":280}],273:[function(require,module,exports){
+'use strict';
+
+/**
+ * Determines whether the specified URL is absolute
+ *
+ * @param {string} url The URL to test
+ * @returns {boolean} True if the specified URL is absolute, otherwise false
+ */
+module.exports = function isAbsoluteURL(url) {
+  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
+  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
+  // by any combination of letters, digits, plus, period, or hyphen.
+  return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
+};
+
+},{}],274:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+
+/**
+ * Determines whether the payload is an error thrown by Axios
+ *
+ * @param {*} payload The value to test
+ * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
+ */
+module.exports = function isAxiosError(payload) {
+  return utils.isObject(payload) && (payload.isAxiosError === true);
+};
+
+},{"./../utils":280}],275:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+
+module.exports = (
+  utils.isStandardBrowserEnv() ?
+
+  // Standard browser envs have full support of the APIs needed to test
+  // whether the request URL is of the same origin as current location.
+    (function standardBrowserEnv() {
+      var msie = /(msie|trident)/i.test(navigator.userAgent);
+      var urlParsingNode = document.createElement('a');
+      var originURL;
+
+      /**
+    * Parse a URL to discover it's components
+    *
+    * @param {String} url The URL to be parsed
+    * @returns {Object}
+    */
+      function resolveURL(url) {
+        var href = url;
+
+        if (msie) {
+        // IE needs attribute set twice to normalize properties
+          urlParsingNode.setAttribute('href', href);
+          href = urlParsingNode.href;
+        }
+
+        urlParsingNode.setAttribute('href', href);
+
+        // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+        return {
+          href: urlParsingNode.href,
+          protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+          host: urlParsingNode.host,
+          search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+          hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+          hostname: urlParsingNode.hostname,
+          port: urlParsingNode.port,
+          pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
+            urlParsingNode.pathname :
+            '/' + urlParsingNode.pathname
+        };
+      }
+
+      originURL = resolveURL(window.location.href);
+
+      /**
+    * Determine if a URL shares the same origin as the current location
+    *
+    * @param {String} requestURL The URL to test
+    * @returns {boolean} True if URL shares the same origin, otherwise false
+    */
+      return function isURLSameOrigin(requestURL) {
+        var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
+        return (parsed.protocol === originURL.protocol &&
+            parsed.host === originURL.host);
+      };
+    })() :
+
+  // Non standard browser envs (web workers, react-native) lack needed support.
+    (function nonStandardBrowserEnv() {
+      return function isURLSameOrigin() {
+        return true;
+      };
+    })()
+);
+
+},{"./../utils":280}],276:[function(require,module,exports){
+'use strict';
+
+var utils = require('../utils');
+
+module.exports = function normalizeHeaderName(headers, normalizedName) {
+  utils.forEach(headers, function processHeader(value, name) {
+    if (name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()) {
+      headers[normalizedName] = value;
+      delete headers[name];
+    }
+  });
+};
+
+},{"../utils":280}],277:[function(require,module,exports){
+'use strict';
+
+var utils = require('./../utils');
+
+// Headers whose duplicates are ignored by node
+// c.f. https://nodejs.org/api/http.html#http_message_headers
+var ignoreDuplicateOf = [
+  'age', 'authorization', 'content-length', 'content-type', 'etag',
+  'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
+  'last-modified', 'location', 'max-forwards', 'proxy-authorization',
+  'referer', 'retry-after', 'user-agent'
+];
+
+/**
+ * Parse headers into an object
+ *
+ * ```
+ * Date: Wed, 27 Aug 2014 08:58:49 GMT
+ * Content-Type: application/json
+ * Connection: keep-alive
+ * Transfer-Encoding: chunked
+ * ```
+ *
+ * @param {String} headers Headers needing to be parsed
+ * @returns {Object} Headers parsed into an object
+ */
+module.exports = function parseHeaders(headers) {
+  var parsed = {};
+  var key;
+  var val;
+  var i;
+
+  if (!headers) { return parsed; }
+
+  utils.forEach(headers.split('\n'), function parser(line) {
+    i = line.indexOf(':');
+    key = utils.trim(line.substr(0, i)).toLowerCase();
+    val = utils.trim(line.substr(i + 1));
+
+    if (key) {
+      if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
+        return;
+      }
+      if (key === 'set-cookie') {
+        parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
+      } else {
+        parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
+      }
+    }
+  });
+
+  return parsed;
+};
+
+},{"./../utils":280}],278:[function(require,module,exports){
+'use strict';
+
+/**
+ * Syntactic sugar for invoking a function and expanding an array for arguments.
+ *
+ * Common use case would be to use `Function.prototype.apply`.
+ *
+ *  ```js
+ *  function f(x, y, z) {}
+ *  var args = [1, 2, 3];
+ *  f.apply(null, args);
+ *  ```
+ *
+ * With `spread` this example can be re-written.
+ *
+ *  ```js
+ *  spread(function(x, y, z) {})([1, 2, 3]);
+ *  ```
+ *
+ * @param {Function} callback
+ * @returns {Function}
+ */
+module.exports = function spread(callback) {
+  return function wrap(arr) {
+    return callback.apply(null, arr);
+  };
+};
+
+},{}],279:[function(require,module,exports){
+'use strict';
+
+var VERSION = require('../env/data').version;
+
+var validators = {};
+
+// eslint-disable-next-line func-names
+['object', 'boolean', 'number', 'function', 'string', 'symbol'].forEach(function(type, i) {
+  validators[type] = function validator(thing) {
+    return typeof thing === type || 'a' + (i < 1 ? 'n ' : ' ') + type;
+  };
+});
+
+var deprecatedWarnings = {};
+
+/**
+ * Transitional option validator
+ * @param {function|boolean?} validator - set to false if the transitional option has been removed
+ * @param {string?} version - deprecated version / removed since version
+ * @param {string?} message - some message with additional info
+ * @returns {function}
+ */
+validators.transitional = function transitional(validator, version, message) {
+  function formatMessage(opt, desc) {
+    return '[Axios v' + VERSION + '] Transitional option \'' + opt + '\'' + desc + (message ? '. ' + message : '');
+  }
+
+  // eslint-disable-next-line func-names
+  return function(value, opt, opts) {
+    if (validator === false) {
+      throw new Error(formatMessage(opt, ' has been removed' + (version ? ' in ' + version : '')));
+    }
+
+    if (version && !deprecatedWarnings[opt]) {
+      deprecatedWarnings[opt] = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+        formatMessage(
+          opt,
+          ' has been deprecated since v' + version + ' and will be removed in the near future'
+        )
+      );
+    }
+
+    return validator ? validator(value, opt, opts) : true;
+  };
+};
+
+/**
+ * Assert object's properties type
+ * @param {object} options
+ * @param {object} schema
+ * @param {boolean?} allowUnknown
+ */
+
+function assertOptions(options, schema, allowUnknown) {
+  if (typeof options !== 'object') {
+    throw new TypeError('options must be an object');
+  }
+  var keys = Object.keys(options);
+  var i = keys.length;
+  while (i-- > 0) {
+    var opt = keys[i];
+    var validator = schema[opt];
+    if (validator) {
+      var value = options[opt];
+      var result = value === undefined || validator(value, opt, options);
+      if (result !== true) {
+        throw new TypeError('option ' + opt + ' must be ' + result);
+      }
+      continue;
+    }
+    if (allowUnknown !== true) {
+      throw Error('Unknown option ' + opt);
+    }
+  }
+}
+
+module.exports = {
+  assertOptions: assertOptions,
+  validators: validators
+};
+
+},{"../env/data":268}],280:[function(require,module,exports){
+'use strict';
+
+var bind = require('./helpers/bind');
+
+// utils is a library of generic helper functions non-specific to axios
+
+var toString = Object.prototype.toString;
+
+/**
+ * Determine if a value is an Array
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Array, otherwise false
+ */
+function isArray(val) {
+  return Array.isArray(val);
+}
+
+/**
+ * Determine if a value is undefined
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if the value is undefined, otherwise false
+ */
+function isUndefined(val) {
+  return typeof val === 'undefined';
+}
+
+/**
+ * Determine if a value is a Buffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Buffer, otherwise false
+ */
+function isBuffer(val) {
+  return val !== null && !isUndefined(val) && val.constructor !== null && !isUndefined(val.constructor)
+    && typeof val.constructor.isBuffer === 'function' && val.constructor.isBuffer(val);
+}
+
+/**
+ * Determine if a value is an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an ArrayBuffer, otherwise false
+ */
+function isArrayBuffer(val) {
+  return toString.call(val) === '[object ArrayBuffer]';
+}
+
+/**
+ * Determine if a value is a FormData
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an FormData, otherwise false
+ */
+function isFormData(val) {
+  return toString.call(val) === '[object FormData]';
+}
+
+/**
+ * Determine if a value is a view on an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
+ */
+function isArrayBufferView(val) {
+  var result;
+  if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
+    result = ArrayBuffer.isView(val);
+  } else {
+    result = (val) && (val.buffer) && (isArrayBuffer(val.buffer));
+  }
+  return result;
+}
+
+/**
+ * Determine if a value is a String
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a String, otherwise false
+ */
+function isString(val) {
+  return typeof val === 'string';
+}
+
+/**
+ * Determine if a value is a Number
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Number, otherwise false
+ */
+function isNumber(val) {
+  return typeof val === 'number';
+}
+
+/**
+ * Determine if a value is an Object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Object, otherwise false
+ */
+function isObject(val) {
+  return val !== null && typeof val === 'object';
+}
+
+/**
+ * Determine if a value is a plain Object
+ *
+ * @param {Object} val The value to test
+ * @return {boolean} True if value is a plain Object, otherwise false
+ */
+function isPlainObject(val) {
+  if (toString.call(val) !== '[object Object]') {
+    return false;
+  }
+
+  var prototype = Object.getPrototypeOf(val);
+  return prototype === null || prototype === Object.prototype;
+}
+
+/**
+ * Determine if a value is a Date
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Date, otherwise false
+ */
+function isDate(val) {
+  return toString.call(val) === '[object Date]';
+}
+
+/**
+ * Determine if a value is a File
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a File, otherwise false
+ */
+function isFile(val) {
+  return toString.call(val) === '[object File]';
+}
+
+/**
+ * Determine if a value is a Blob
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Blob, otherwise false
+ */
+function isBlob(val) {
+  return toString.call(val) === '[object Blob]';
+}
+
+/**
+ * Determine if a value is a Function
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Function, otherwise false
+ */
+function isFunction(val) {
+  return toString.call(val) === '[object Function]';
+}
+
+/**
+ * Determine if a value is a Stream
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Stream, otherwise false
+ */
+function isStream(val) {
+  return isObject(val) && isFunction(val.pipe);
+}
+
+/**
+ * Determine if a value is a URLSearchParams object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a URLSearchParams object, otherwise false
+ */
+function isURLSearchParams(val) {
+  return toString.call(val) === '[object URLSearchParams]';
+}
+
+/**
+ * Trim excess whitespace off the beginning and end of a string
+ *
+ * @param {String} str The String to trim
+ * @returns {String} The String freed of excess whitespace
+ */
+function trim(str) {
+  return str.trim ? str.trim() : str.replace(/^\s+|\s+$/g, '');
+}
+
+/**
+ * Determine if we're running in a standard browser environment
+ *
+ * This allows axios to run in a web worker, and react-native.
+ * Both environments support XMLHttpRequest, but not fully standard globals.
+ *
+ * web workers:
+ *  typeof window -> undefined
+ *  typeof document -> undefined
+ *
+ * react-native:
+ *  navigator.product -> 'ReactNative'
+ * nativescript
+ *  navigator.product -> 'NativeScript' or 'NS'
+ */
+function isStandardBrowserEnv() {
+  if (typeof navigator !== 'undefined' && (navigator.product === 'ReactNative' ||
+                                           navigator.product === 'NativeScript' ||
+                                           navigator.product === 'NS')) {
+    return false;
+  }
+  return (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined'
+  );
+}
+
+/**
+ * Iterate over an Array or an Object invoking a function for each item.
+ *
+ * If `obj` is an Array callback will be called passing
+ * the value, index, and complete array for each item.
+ *
+ * If 'obj' is an Object callback will be called passing
+ * the value, key, and complete object for each property.
+ *
+ * @param {Object|Array} obj The object to iterate
+ * @param {Function} fn The callback to invoke for each item
+ */
+function forEach(obj, fn) {
+  // Don't bother if no value provided
+  if (obj === null || typeof obj === 'undefined') {
+    return;
+  }
+
+  // Force an array if not already something iterable
+  if (typeof obj !== 'object') {
+    /*eslint no-param-reassign:0*/
+    obj = [obj];
+  }
+
+  if (isArray(obj)) {
+    // Iterate over array values
+    for (var i = 0, l = obj.length; i < l; i++) {
+      fn.call(null, obj[i], i, obj);
+    }
+  } else {
+    // Iterate over object keys
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        fn.call(null, obj[key], key, obj);
+      }
+    }
+  }
+}
+
+/**
+ * Accepts varargs expecting each argument to be an object, then
+ * immutably merges the properties of each object and returns result.
+ *
+ * When multiple objects contain the same key the later object in
+ * the arguments list will take precedence.
+ *
+ * Example:
+ *
+ * ```js
+ * var result = merge({foo: 123}, {foo: 456});
+ * console.log(result.foo); // outputs 456
+ * ```
+ *
+ * @param {Object} obj1 Object to merge
+ * @returns {Object} Result of all merge properties
+ */
+function merge(/* obj1, obj2, obj3, ... */) {
+  var result = {};
+  function assignValue(val, key) {
+    if (isPlainObject(result[key]) && isPlainObject(val)) {
+      result[key] = merge(result[key], val);
+    } else if (isPlainObject(val)) {
+      result[key] = merge({}, val);
+    } else if (isArray(val)) {
+      result[key] = val.slice();
+    } else {
+      result[key] = val;
+    }
+  }
+
+  for (var i = 0, l = arguments.length; i < l; i++) {
+    forEach(arguments[i], assignValue);
+  }
+  return result;
+}
+
+/**
+ * Extends object a by mutably adding to it the properties of object b.
+ *
+ * @param {Object} a The object to be extended
+ * @param {Object} b The object to copy properties from
+ * @param {Object} thisArg The object to bind function to
+ * @return {Object} The resulting value of object a
+ */
+function extend(a, b, thisArg) {
+  forEach(b, function assignValue(val, key) {
+    if (thisArg && typeof val === 'function') {
+      a[key] = bind(val, thisArg);
+    } else {
+      a[key] = val;
+    }
+  });
+  return a;
+}
+
+/**
+ * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+ *
+ * @param {string} content with BOM
+ * @return {string} content value without BOM
+ */
+function stripBOM(content) {
+  if (content.charCodeAt(0) === 0xFEFF) {
+    content = content.slice(1);
+  }
+  return content;
+}
+
+module.exports = {
+  isArray: isArray,
+  isArrayBuffer: isArrayBuffer,
+  isBuffer: isBuffer,
+  isFormData: isFormData,
+  isArrayBufferView: isArrayBufferView,
+  isString: isString,
+  isNumber: isNumber,
+  isObject: isObject,
+  isPlainObject: isPlainObject,
+  isUndefined: isUndefined,
+  isDate: isDate,
+  isFile: isFile,
+  isBlob: isBlob,
+  isFunction: isFunction,
+  isStream: isStream,
+  isURLSearchParams: isURLSearchParams,
+  isStandardBrowserEnv: isStandardBrowserEnv,
+  forEach: forEach,
+  merge: merge,
+  extend: extend,
+  trim: trim,
+  stripBOM: stripBOM
+};
+
+},{"./helpers/bind":269}],281:[function(require,module,exports){
+arguments[4][127][0].apply(exports,arguments)
+},{"dup":127}],282:[function(require,module,exports){
+arguments[4][128][0].apply(exports,arguments)
+},{"buffer":130,"dup":128}],283:[function(require,module,exports){
+arguments[4][129][0].apply(exports,arguments)
+},{"crypto":130,"dup":129}],284:[function(require,module,exports){
+arguments[4][131][0].apply(exports,arguments)
+},{"../package.json":300,"./elliptic/curve":287,"./elliptic/curves":290,"./elliptic/ec":291,"./elliptic/eddsa":294,"./elliptic/utils":298,"brorand":283,"dup":131}],285:[function(require,module,exports){
+arguments[4][132][0].apply(exports,arguments)
+},{"../utils":298,"bn.js":299,"dup":132}],286:[function(require,module,exports){
+arguments[4][133][0].apply(exports,arguments)
+},{"../utils":298,"./base":285,"bn.js":299,"dup":133,"inherits":315}],287:[function(require,module,exports){
+arguments[4][134][0].apply(exports,arguments)
+},{"./base":285,"./edwards":286,"./mont":288,"./short":289,"dup":134}],288:[function(require,module,exports){
+arguments[4][135][0].apply(exports,arguments)
+},{"../utils":298,"./base":285,"bn.js":299,"dup":135,"inherits":315}],289:[function(require,module,exports){
+arguments[4][136][0].apply(exports,arguments)
+},{"../utils":298,"./base":285,"bn.js":299,"dup":136,"inherits":315}],290:[function(require,module,exports){
+arguments[4][137][0].apply(exports,arguments)
+},{"./curve":287,"./precomputed/secp256k1":297,"./utils":298,"dup":137,"hash.js":302}],291:[function(require,module,exports){
+arguments[4][138][0].apply(exports,arguments)
+},{"../curves":290,"../utils":298,"./key":292,"./signature":293,"bn.js":299,"brorand":283,"dup":138,"hmac-drbg":314}],292:[function(require,module,exports){
+arguments[4][139][0].apply(exports,arguments)
+},{"../utils":298,"bn.js":299,"dup":139}],293:[function(require,module,exports){
+arguments[4][140][0].apply(exports,arguments)
+},{"../utils":298,"bn.js":299,"dup":140}],294:[function(require,module,exports){
+arguments[4][141][0].apply(exports,arguments)
+},{"../curves":290,"../utils":298,"./key":295,"./signature":296,"dup":141,"hash.js":302}],295:[function(require,module,exports){
+arguments[4][142][0].apply(exports,arguments)
+},{"../utils":298,"dup":142}],296:[function(require,module,exports){
+arguments[4][143][0].apply(exports,arguments)
+},{"../utils":298,"bn.js":299,"dup":143}],297:[function(require,module,exports){
+arguments[4][144][0].apply(exports,arguments)
+},{"dup":144}],298:[function(require,module,exports){
+arguments[4][145][0].apply(exports,arguments)
+},{"bn.js":299,"dup":145,"minimalistic-assert":317,"minimalistic-crypto-utils":318}],299:[function(require,module,exports){
+arguments[4][146][0].apply(exports,arguments)
+},{"buffer":130,"dup":146}],300:[function(require,module,exports){
+arguments[4][147][0].apply(exports,arguments)
+},{"dup":147}],301:[function(require,module,exports){
+var naiveFallback = function () {
+	if (typeof self === "object" && self) return self;
+	if (typeof window === "object" && window) return window;
+	throw new Error("Unable to resolve global `this`");
+};
+
+module.exports = (function () {
+	if (this) return this;
+
+	// Unexpected strict mode (may happen if e.g. bundled into ESM module)
+
+	// Fallback to standard globalThis if available
+	if (typeof globalThis === "object" && globalThis) return globalThis;
+
+	// Thanks @mathiasbynens -> https://mathiasbynens.be/notes/globalthis
+	// In all ES5+ engines global object inherits from Object.prototype
+	// (if you approached one that doesn't please report)
+	try {
+		Object.defineProperty(Object.prototype, "__global__", {
+			get: function () { return this; },
+			configurable: true
+		});
+	} catch (error) {
+		// Unfortunate case of updates to Object.prototype being restricted
+		// via preventExtensions, seal or freeze
+		return naiveFallback();
+	}
+	try {
+		// Safari case (window.__global__ works, but __global__ does not)
+		if (!__global__) return naiveFallback();
+		return __global__;
+	} finally {
+		delete Object.prototype.__global__;
+	}
+})();
+
+},{}],302:[function(require,module,exports){
+arguments[4][152][0].apply(exports,arguments)
+},{"./hash/common":303,"./hash/hmac":304,"./hash/ripemd":305,"./hash/sha":306,"./hash/utils":313,"dup":152}],303:[function(require,module,exports){
+arguments[4][153][0].apply(exports,arguments)
+},{"./utils":313,"dup":153,"minimalistic-assert":317}],304:[function(require,module,exports){
+arguments[4][154][0].apply(exports,arguments)
+},{"./utils":313,"dup":154,"minimalistic-assert":317}],305:[function(require,module,exports){
+arguments[4][155][0].apply(exports,arguments)
+},{"./common":303,"./utils":313,"dup":155}],306:[function(require,module,exports){
+arguments[4][156][0].apply(exports,arguments)
+},{"./sha/1":307,"./sha/224":308,"./sha/256":309,"./sha/384":310,"./sha/512":311,"dup":156}],307:[function(require,module,exports){
+arguments[4][157][0].apply(exports,arguments)
+},{"../common":303,"../utils":313,"./common":312,"dup":157}],308:[function(require,module,exports){
+arguments[4][158][0].apply(exports,arguments)
+},{"../utils":313,"./256":309,"dup":158}],309:[function(require,module,exports){
+arguments[4][159][0].apply(exports,arguments)
+},{"../common":303,"../utils":313,"./common":312,"dup":159,"minimalistic-assert":317}],310:[function(require,module,exports){
+arguments[4][160][0].apply(exports,arguments)
+},{"../utils":313,"./512":311,"dup":160}],311:[function(require,module,exports){
+arguments[4][161][0].apply(exports,arguments)
+},{"../common":303,"../utils":313,"dup":161,"minimalistic-assert":317}],312:[function(require,module,exports){
+arguments[4][162][0].apply(exports,arguments)
+},{"../utils":313,"dup":162}],313:[function(require,module,exports){
+arguments[4][163][0].apply(exports,arguments)
+},{"dup":163,"inherits":315,"minimalistic-assert":317}],314:[function(require,module,exports){
+arguments[4][164][0].apply(exports,arguments)
+},{"dup":164,"hash.js":302,"minimalistic-assert":317,"minimalistic-crypto-utils":318}],315:[function(require,module,exports){
+arguments[4][165][0].apply(exports,arguments)
+},{"dup":165}],316:[function(require,module,exports){
+arguments[4][166][0].apply(exports,arguments)
+},{"_process":169,"dup":166}],317:[function(require,module,exports){
+arguments[4][167][0].apply(exports,arguments)
+},{"dup":167}],318:[function(require,module,exports){
+arguments[4][168][0].apply(exports,arguments)
+},{"dup":168}],319:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var SHOULD_RECONNECT_FALSE_MESSAGE = "Provided shouldReconnect() returned false. Closing permanently.";
+var SHOULD_RECONNECT_PROMISE_FALSE_MESSAGE = "Provided shouldReconnect() resolved to false. Closing permanently.";
+var SturdyWebSocket = /** @class */ (function () {
+    function SturdyWebSocket(url, protocolsOrOptions, options) {
+        if (options === void 0) { options = {}; }
+        this.url = url;
+        this.onclose = null;
+        this.onerror = null;
+        this.onmessage = null;
+        this.onopen = null;
+        this.ondown = null;
+        this.onreopen = null;
+        this.CONNECTING = SturdyWebSocket.CONNECTING;
+        this.OPEN = SturdyWebSocket.OPEN;
+        this.CLOSING = SturdyWebSocket.CLOSING;
+        this.CLOSED = SturdyWebSocket.CLOSED;
+        this.hasBeenOpened = false;
+        this.isClosed = false;
+        this.messageBuffer = [];
+        this.nextRetryTime = 0;
+        this.reconnectCount = 0;
+        this.lastKnownExtensions = "";
+        this.lastKnownProtocol = "";
+        this.listeners = {};
+        if (protocolsOrOptions == null ||
+            typeof protocolsOrOptions === "string" ||
+            Array.isArray(protocolsOrOptions)) {
+            this.protocols = protocolsOrOptions;
+        }
+        else {
+            options = protocolsOrOptions;
+        }
+        this.options = applyDefaultOptions(options);
+        if (!this.options.wsConstructor) {
+            if (typeof WebSocket !== "undefined") {
+                this.options.wsConstructor = WebSocket;
+            }
+            else {
+                throw new Error("WebSocket not present in global scope and no " +
+                    "wsConstructor option was provided.");
+            }
+        }
+        this.openNewWebSocket();
+    }
+    Object.defineProperty(SturdyWebSocket.prototype, "binaryType", {
+        get: function () {
+            return this.binaryTypeInternal || "blob";
+        },
+        set: function (binaryType) {
+            this.binaryTypeInternal = binaryType;
+            if (this.ws) {
+                this.ws.binaryType = binaryType;
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SturdyWebSocket.prototype, "bufferedAmount", {
+        get: function () {
+            var sum = this.ws ? this.ws.bufferedAmount : 0;
+            var hasUnknownAmount = false;
+            this.messageBuffer.forEach(function (data) {
+                var byteLength = getDataByteLength(data);
+                if (byteLength != null) {
+                    sum += byteLength;
+                }
+                else {
+                    hasUnknownAmount = true;
+                }
+            });
+            if (hasUnknownAmount) {
+                this.debugLog("Some buffered data had unknown length. bufferedAmount()" +
+                    " return value may be below the correct amount.");
+            }
+            return sum;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SturdyWebSocket.prototype, "extensions", {
+        get: function () {
+            return this.ws ? this.ws.extensions : this.lastKnownExtensions;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SturdyWebSocket.prototype, "protocol", {
+        get: function () {
+            return this.ws ? this.ws.protocol : this.lastKnownProtocol;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SturdyWebSocket.prototype, "readyState", {
+        get: function () {
+            return this.isClosed ? SturdyWebSocket.CLOSED : SturdyWebSocket.OPEN;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    SturdyWebSocket.prototype.close = function (code, reason) {
+        this.disposeSocket(code, reason);
+        this.shutdown();
+        this.debugLog("WebSocket permanently closed by client.");
+    };
+    SturdyWebSocket.prototype.send = function (data) {
+        if (this.isClosed) {
+            throw new Error("WebSocket is already in CLOSING or CLOSED state.");
+        }
+        else if (this.ws && this.ws.readyState === this.OPEN) {
+            this.ws.send(data);
+        }
+        else {
+            this.messageBuffer.push(data);
+        }
+    };
+    SturdyWebSocket.prototype.reconnect = function () {
+        if (this.isClosed) {
+            throw new Error("Cannot call reconnect() on socket which is permanently closed.");
+        }
+        this.disposeSocket(1000, "Client requested reconnect.");
+        this.handleClose(undefined);
+    };
+    SturdyWebSocket.prototype.addEventListener = function (type, listener) {
+        if (!this.listeners[type]) {
+            this.listeners[type] = [];
+        }
+        this.listeners[type].push(listener);
+    };
+    SturdyWebSocket.prototype.dispatchEvent = function (event) {
+        return this.dispatchEventOfType(event.type, event);
+    };
+    SturdyWebSocket.prototype.removeEventListener = function (type, listener) {
+        if (this.listeners[type]) {
+            this.listeners[type] = this.listeners[type].filter(function (l) { return l !== listener; });
+        }
+    };
+    SturdyWebSocket.prototype.openNewWebSocket = function () {
+        var _this = this;
+        if (this.isClosed) {
+            return;
+        }
+        var _a = this.options, connectTimeout = _a.connectTimeout, wsConstructor = _a.wsConstructor;
+        this.debugLog("Opening new WebSocket to " + this.url + ".");
+        var ws = new wsConstructor(this.url, this.protocols);
+        ws.onclose = function (event) { return _this.handleClose(event); };
+        ws.onerror = function (event) { return _this.handleError(event); };
+        ws.onmessage = function (event) { return _this.handleMessage(event); };
+        ws.onopen = function (event) { return _this.handleOpen(event); };
+        this.connectTimeoutId = setTimeout(function () {
+            // If this is running, we still haven't opened the websocket.
+            // Kill it so we can try again.
+            _this.clearConnectTimeout();
+            _this.disposeSocket();
+            _this.handleClose(undefined);
+        }, connectTimeout);
+        this.ws = ws;
+    };
+    SturdyWebSocket.prototype.handleOpen = function (event) {
+        var _this = this;
+        if (!this.ws || this.isClosed) {
+            return;
+        }
+        var allClearResetTime = this.options.allClearResetTime;
+        this.debugLog("WebSocket opened.");
+        if (this.binaryTypeInternal != null) {
+            this.ws.binaryType = this.binaryTypeInternal;
+        }
+        else {
+            this.binaryTypeInternal = this.ws.binaryType;
+        }
+        this.clearConnectTimeout();
+        if (this.hasBeenOpened) {
+            this.dispatchEventOfType("reopen", event);
+        }
+        else {
+            this.dispatchEventOfType("open", event);
+            this.hasBeenOpened = true;
+        }
+        this.messageBuffer.forEach(function (message) { return _this.send(message); });
+        this.messageBuffer = [];
+        this.allClearTimeoutId = setTimeout(function () {
+            _this.clearAllClearTimeout();
+            _this.nextRetryTime = 0;
+            _this.reconnectCount = 0;
+            var openTime = (allClearResetTime / 1000) | 0;
+            _this.debugLog("WebSocket remained open for " + openTime + " seconds. Resetting" +
+                " retry time and count.");
+        }, allClearResetTime);
+    };
+    SturdyWebSocket.prototype.handleMessage = function (event) {
+        if (this.isClosed) {
+            return;
+        }
+        this.dispatchEventOfType("message", event);
+    };
+    SturdyWebSocket.prototype.handleClose = function (event) {
+        var _this = this;
+        if (this.isClosed) {
+            return;
+        }
+        var _a = this.options, maxReconnectAttempts = _a.maxReconnectAttempts, shouldReconnect = _a.shouldReconnect;
+        this.clearConnectTimeout();
+        this.clearAllClearTimeout();
+        if (this.ws) {
+            this.lastKnownExtensions = this.ws.extensions;
+            this.lastKnownProtocol = this.ws.protocol;
+            this.disposeSocket();
+        }
+        this.dispatchEventOfType("down", event);
+        if (this.reconnectCount >= maxReconnectAttempts) {
+            this.stopReconnecting(event, this.getTooManyFailedReconnectsMessage());
+            return;
+        }
+        var willReconnect = !event || shouldReconnect(event);
+        if (typeof willReconnect === "boolean") {
+            this.handleWillReconnect(willReconnect, event, SHOULD_RECONNECT_FALSE_MESSAGE);
+        }
+        else {
+            willReconnect.then(function (willReconnectResolved) {
+                if (_this.isClosed) {
+                    return;
+                }
+                _this.handleWillReconnect(willReconnectResolved, event, SHOULD_RECONNECT_PROMISE_FALSE_MESSAGE);
+            });
+        }
+    };
+    SturdyWebSocket.prototype.handleError = function (event) {
+        this.dispatchEventOfType("error", event);
+        this.debugLog("WebSocket encountered an error.");
+    };
+    SturdyWebSocket.prototype.handleWillReconnect = function (willReconnect, event, denialReason) {
+        if (willReconnect) {
+            this.reestablishConnection();
+        }
+        else {
+            this.stopReconnecting(event, denialReason);
+        }
+    };
+    SturdyWebSocket.prototype.reestablishConnection = function () {
+        var _this = this;
+        var _a = this.options, minReconnectDelay = _a.minReconnectDelay, maxReconnectDelay = _a.maxReconnectDelay, reconnectBackoffFactor = _a.reconnectBackoffFactor;
+        this.reconnectCount++;
+        var retryTime = this.nextRetryTime;
+        this.nextRetryTime = Math.max(minReconnectDelay, Math.min(this.nextRetryTime * reconnectBackoffFactor, maxReconnectDelay));
+        setTimeout(function () { return _this.openNewWebSocket(); }, retryTime);
+        var retryTimeSeconds = (retryTime / 1000) | 0;
+        this.debugLog("WebSocket was closed. Re-opening in " + retryTimeSeconds + " seconds.");
+    };
+    SturdyWebSocket.prototype.stopReconnecting = function (event, debugReason) {
+        this.debugLog(debugReason);
+        this.shutdown();
+        if (event) {
+            this.dispatchEventOfType("close", event);
+        }
+    };
+    SturdyWebSocket.prototype.shutdown = function () {
+        this.isClosed = true;
+        this.clearAllTimeouts();
+        this.messageBuffer = [];
+        this.disposeSocket();
+    };
+    SturdyWebSocket.prototype.disposeSocket = function (closeCode, reason) {
+        if (!this.ws) {
+            return;
+        }
+        // Use noop handlers instead of null because some WebSocket
+        // implementations, such as the one from isomorphic-ws, raise a stink on
+        // unhandled events.
+        this.ws.onerror = noop;
+        this.ws.onclose = noop;
+        this.ws.onmessage = noop;
+        this.ws.onopen = noop;
+        this.ws.close(closeCode, reason);
+        this.ws = undefined;
+    };
+    SturdyWebSocket.prototype.clearAllTimeouts = function () {
+        this.clearConnectTimeout();
+        this.clearAllClearTimeout();
+    };
+    SturdyWebSocket.prototype.clearConnectTimeout = function () {
+        if (this.connectTimeoutId != null) {
+            clearTimeout(this.connectTimeoutId);
+            this.connectTimeoutId = undefined;
+        }
+    };
+    SturdyWebSocket.prototype.clearAllClearTimeout = function () {
+        if (this.allClearTimeoutId != null) {
+            clearTimeout(this.allClearTimeoutId);
+            this.allClearTimeoutId = undefined;
+        }
+    };
+    SturdyWebSocket.prototype.dispatchEventOfType = function (type, event) {
+        var _this = this;
+        switch (type) {
+            case "close":
+                if (this.onclose) {
+                    this.onclose(event);
+                }
+                break;
+            case "error":
+                if (this.onerror) {
+                    this.onerror(event);
+                }
+                break;
+            case "message":
+                if (this.onmessage) {
+                    this.onmessage(event);
+                }
+                break;
+            case "open":
+                if (this.onopen) {
+                    this.onopen(event);
+                }
+                break;
+            case "down":
+                if (this.ondown) {
+                    this.ondown(event);
+                }
+                break;
+            case "reopen":
+                if (this.onreopen) {
+                    this.onreopen(event);
+                }
+                break;
+        }
+        if (type in this.listeners) {
+            this.listeners[type]
+                .slice()
+                .forEach(function (listener) { return _this.callListener(listener, event); });
+        }
+        return !event || !event.defaultPrevented;
+    };
+    SturdyWebSocket.prototype.callListener = function (listener, event) {
+        if (typeof listener === "function") {
+            listener.call(this, event);
+        }
+        else {
+            listener.handleEvent.call(this, event);
+        }
+    };
+    SturdyWebSocket.prototype.debugLog = function (message) {
+        if (this.options.debug) {
+            // tslint:disable-next-line:no-console
+            console.log(message);
+        }
+    };
+    SturdyWebSocket.prototype.getTooManyFailedReconnectsMessage = function () {
+        var maxReconnectAttempts = this.options.maxReconnectAttempts;
+        return "Failed to reconnect after " + maxReconnectAttempts + " " + pluralize("attempt", maxReconnectAttempts) + ". Closing permanently.";
+    };
+    SturdyWebSocket.DEFAULT_OPTIONS = {
+        allClearResetTime: 5000,
+        connectTimeout: 5000,
+        debug: false,
+        minReconnectDelay: 1000,
+        maxReconnectDelay: 30000,
+        maxReconnectAttempts: Number.POSITIVE_INFINITY,
+        reconnectBackoffFactor: 1.5,
+        shouldReconnect: function () { return true; },
+        wsConstructor: undefined,
+    };
+    SturdyWebSocket.CONNECTING = 0;
+    SturdyWebSocket.OPEN = 1;
+    SturdyWebSocket.CLOSING = 2;
+    SturdyWebSocket.CLOSED = 3;
+    return SturdyWebSocket;
+}());
+exports.default = SturdyWebSocket;
+function applyDefaultOptions(options) {
+    var result = {};
+    Object.keys(SturdyWebSocket.DEFAULT_OPTIONS).forEach(function (key) {
+        var value = options[key];
+        result[key] =
+            value === undefined
+                ? SturdyWebSocket.DEFAULT_OPTIONS[key]
+                : value;
+    });
+    return result;
+}
+function getDataByteLength(data) {
+    if (typeof data === "string") {
+        // UTF-16 strings use two bytes per character.
+        return 2 * data.length;
+    }
+    else if (data instanceof ArrayBuffer) {
+        return data.byteLength;
+    }
+    else if (data instanceof Blob) {
+        return data.size;
+    }
+    else {
+        return undefined;
+    }
+}
+function pluralize(s, n) {
+    return n === 1 ? s : s + "s";
+}
+function noop() {
+    // Nothing.
+}
+
+},{}],320:[function(require,module,exports){
+var _globalThis;
+if (typeof globalThis === 'object') {
+	_globalThis = globalThis;
+} else {
+	try {
+		_globalThis = require('es5-ext/global');
+	} catch (error) {
+	} finally {
+		if (!_globalThis && typeof window !== 'undefined') { _globalThis = window; }
+		if (!_globalThis) { throw new Error('Could not determine global this'); }
+	}
+}
+
+var NativeWebSocket = _globalThis.WebSocket || _globalThis.MozWebSocket;
+var websocket_version = require('./version');
+
+
+/**
+ * Expose a W3C WebSocket class with just one or two arguments.
+ */
+function W3CWebSocket(uri, protocols) {
+	var native_instance;
+
+	if (protocols) {
+		native_instance = new NativeWebSocket(uri, protocols);
+	}
+	else {
+		native_instance = new NativeWebSocket(uri);
+	}
+
+	/**
+	 * 'native_instance' is an instance of nativeWebSocket (the browser's WebSocket
+	 * class). Since it is an Object it will be returned as it is when creating an
+	 * instance of W3CWebSocket via 'new W3CWebSocket()'.
+	 *
+	 * ECMAScript 5: http://bclary.com/2004/11/07/#a-13.2.2
+	 */
+	return native_instance;
+}
+if (NativeWebSocket) {
+	['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach(function(prop) {
+		Object.defineProperty(W3CWebSocket, prop, {
+			get: function() { return NativeWebSocket[prop]; }
+		});
+	});
+}
+
+/**
+ * Module exports.
+ */
+module.exports = {
+    'w3cwebsocket' : NativeWebSocket ? W3CWebSocket : null,
+    'version'      : websocket_version
+};
+
+},{"./version":321,"es5-ext/global":301}],321:[function(require,module,exports){
+module.exports = require('../package.json').version;
+
+},{"../package.json":322}],322:[function(require,module,exports){
+module.exports={
+  "name": "websocket",
+  "description": "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
+  "keywords": [
+    "websocket",
+    "websockets",
+    "socket",
+    "networking",
+    "comet",
+    "push",
+    "RFC-6455",
+    "realtime",
+    "server",
+    "client"
+  ],
+  "author": "Brian McKelvey <theturtle32@gmail.com> (https://github.com/theturtle32)",
+  "contributors": [
+    "Iñaki Baz Castillo <ibc@aliax.net> (http://dev.sipdoc.net)"
+  ],
+  "version": "1.0.34",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theturtle32/WebSocket-Node.git"
+  },
+  "homepage": "https://github.com/theturtle32/WebSocket-Node",
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "debug": "^2.2.0",
+    "es5-ext": "^0.10.50",
+    "typedarray-to-buffer": "^3.1.5",
+    "utf-8-validate": "^5.0.2",
+    "yaeti": "^0.0.6"
+  },
+  "devDependencies": {
+    "buffer-equal": "^1.0.0",
+    "gulp": "^4.0.2",
+    "gulp-jshint": "^2.0.4",
+    "jshint-stylish": "^2.2.1",
+    "jshint": "^2.0.0",
+    "tape": "^4.9.1"
+  },
+  "config": {
+    "verbose": false
+  },
+  "scripts": {
+    "test": "tape test/unit/*.js",
+    "gulp": "gulp"
+  },
+  "main": "index",
+  "directories": {
+    "lib": "./lib"
+  },
+  "browser": "lib/browser.js",
+  "license": "Apache-2.0"
+}
+
+},{}]},{},[1]);

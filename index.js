@@ -1,6 +1,15 @@
 
+const { Network } = require('@alch/alchemy-sdk');
 const ethers = require('ethers');
 const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+document.getElementById("connectwallet").addEventListener("click", function () {
+    provider.send("eth_requestAccounts", []).then(addresses => {
+        console.log(addresses[0]);
+
+    })
+
+})
 
 document.getElementById("addressbutton").addEventListener("click", function () {
     provider.send("eth_requestAccounts", []).then(addresses => {
@@ -79,29 +88,44 @@ async function findchainid() {
 }
 findchainid();
 
-// async function main() {
-//     // Replace with your Ethereum wallet address
-//     const walletAddress = '0x9552cfce60429863D4A7D8205457EC4AC05857dC0';
-
-//     // Connect to the Ethereum network
-
-//     // Get all the NFTs owned by the wallet address
-//     const nftTokens = await ethers.getNFTokens(provider, walletAddress);
-
-//     console.log(nftTokens);
-// }
-
-// main();
 
 
-//     // Call the getGasPrice() method
-//     const gasPrice = await provider.getGasPrice();
-//     document.getElementById("currentGasPrice").innerHTML = ethers.utils.formatUnits(gasPrice, "gwei");
-//     console.log(ethers.utils.formatUnits(gasPrice, "gwei")); // logs the current gas price in wei
-// }
+// document.getElementById("chainIDbutton").addEventListener("click", function () {
+//     const network = provider.getNetwork();
+//     console.log(network.chainId);
+//     // document.getElementById("myChainID").innerHTML = mychainId;
+// })
+// document.getElementById("addressbutton").addEventListener("click", function () {
+//     provider.send("eth_requestAccounts", []).then(addresses => {
+//         console.log(addresses[0]);
+//         document.getElementById("address").innerHTML = addresses[0];
+//     })
 
-// getGasPrice();
+// })
+
+document.getElementById("searchaddressbutton").addEventListener("click", function () {
+    const address2 = document.getElementById("input-bar").value;
+    document.getElementById("address2").innerHTML = address2;
+    provider.getBalance(address2).then(myBalance => {
+        console.log(ethers.utils.formatEther(myBalance));
+        document.getElementById("balance2").innerHTML = ethers.utils.formatEther(myBalance);
+
+    })
+})
+// document.getElementById("addressbutton2").addEventListener("click", function () {
+
+
+// })
+
+
+// document.getElementById("address2").innerHTML = address2;
+
+// Replace the following with the address whose balance you want to check
+// const address2 = '0x6c5D6081e7EdD0F047d4b72BBAdf7Ebf8168b31B';
+
+// Create a provider to connect to the Ethereum network
+
+// Get the balance of the address
+// provider2.getBalance(address2).then((balance) => {
+//     console.log(ethers.utils.formatEther(balance));
 // });
-
-// });
-
